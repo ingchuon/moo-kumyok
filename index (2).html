@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>หมูคำหยก — ระบบหลังบ้าน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#C0392B;--primary-dark:#922B21;--primary-light:#F9EBEA;
+  --accent:#E67E22;--accent-light:#FEF9E7;
+  --green:#1E8449;--green-light:#EAFAF1;
+  --blue:#1A5276;--blue-light:#EAF2F8;
+  --gray:#5D6D7E;--gray-light:#F2F3F4;
+  --border:#E0E0E0;--white:#fff;--text:#1C2833;--text-muted:#7F8C8D;
+  --shadow:0 2px 12px rgba(0,0,0,.07);--radius:10px;--radius-sm:6px;
+}
+body{font-family:'Sarabun',sans-serif;background:#F5F5F0;color:var(--text);font-size:15px;min-height:100vh}
+
+.header{background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 60%,var(--accent) 100%);color:#fff;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(192,57,43,.3)}
+.header-inner{display:flex;align-items:center;gap:14px;padding:13px 24px}
+.logo-icon{width:38px;height:38px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.logo-text{font-family:'IBM Plex Sans Thai',sans-serif;font-weight:600;font-size:17px}
+.logo-sub{font-size:11px;opacity:.7;letter-spacing:.5px;display:block;margin-top:-2px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.sync-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);border-radius:20px;padding:5px 12px;font-size:12px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#2ECC71;flex-shrink:0}
+.sync-dot.syncing{background:#F39C12;animation:spin .8s linear infinite}
+.sync-dot.error{background:#E74C3C}
+@keyframes spin{0%{transform:scale(1)}50%{transform:scale(1.5)}100%{transform:scale(1)}}
+.date-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 12px;font-size:12px}
+
+.nav{background:#fff;border-bottom:2px solid var(--gray-light);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:65px;z-index:99;box-shadow:0 2px 6px rgba(0,0,0,.04)}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{padding:13px 18px;font-size:13px;font-family:'Sarabun',sans-serif;font-weight:500;cursor:pointer;border:none;background:none;color:var(--text-muted);white-space:nowrap;display:flex;align-items:center;gap:7px;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .18s}
+.nav-btn:hover{color:var(--primary);background:var(--primary-light)}
+.nav-btn.active{color:var(--primary);border-bottom-color:var(--primary);background:var(--primary-light)}
+
+.content{max-width:1200px;margin:0 auto;padding:22px 18px}
+.tab{display:none;animation:fadeIn .22s ease}
+.tab.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.card{background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:18px;border:1px solid rgba(0,0,0,.04)}
+.card-title{font-family:'IBM Plex Sans Thai',sans-serif;font-weight:600;font-size:15px;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title i{color:var(--primary);font-size:14px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--white);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);border:1px solid rgba(0,0,0,.04);position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.blue::before{background:var(--blue)}.kpi.red::before{background:var(--primary)}
+.kpi.green::before{background:var(--green)}.kpi.orange::before{background:var(--accent)}
+.kpi-label{font-size:11px;color:var(--text-muted);margin-bottom:5px;font-weight:600;letter-spacing:.3px}
+.kpi-val{font-size:22px;font-weight:600;font-family:'IBM Plex Sans Thai',sans-serif;line-height:1}
+.kpi.blue .kpi-val{color:var(--blue)}.kpi.red .kpi-val{color:var(--primary)}
+.kpi.green .kpi-val{color:var(--green)}.kpi.orange .kpi-val{color:var(--accent)}
+.kpi-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+
+.section-label{font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--gray-light);display:flex;align-items:center;gap:6px}
+
+.chart-wrap{position:relative;width:100%}
+.table-wrap{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--gray-light)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}
+thead{background:var(--gray-light)}
+th{padding:9px 11px;text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.4px;white-space:nowrap}
+td{padding:9px 11px;border-bottom:1px solid var(--gray-light);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#FAFAFA}
+
+.form-grid{display:flex;gap:9px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;padding:14px;background:var(--gray-light);border-radius:var(--radius-sm)}
+.fg{display:flex;flex-direction:column;gap:4px;flex:1;min-width:90px}
+.fg label{font-size:11px;font-weight:600;color:var(--text-muted);letter-spacing:.3px}
+input[type=text],input[type=number],input[type=date],input[type=time],select{
+  font-family:'Sarabun',sans-serif;font-size:13px;padding:7px 10px;
+  border:1.5px solid #D5D8DC;border-radius:var(--radius-sm);
+  background:var(--white);color:var(--text);width:100%;outline:none;transition:border .18s
+}
+input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(192,57,43,.08)}
+
+.btn{padding:7px 16px;border-radius:var(--radius-sm);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #D5D8DC;background:var(--white);color:var(--text);transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--gray-light)}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{background:var(--primary-dark);border-color:var(--primary-dark)}
+.btn-sm{padding:4px 9px;font-size:11px}
+.btn-icon{padding:5px 8px;background:none;border-color:transparent;color:var(--text-muted)}
+.btn-icon:hover{background:var(--primary-light);color:var(--primary);border-color:transparent}
+
+.badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-red{background:var(--primary-light);color:var(--primary)}
+.badge-orange{background:var(--accent-light);color:#D68910}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.badge-gray{background:var(--gray-light);color:var(--gray)}
+
+.sum-row{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--gray-light);border-radius:var(--radius-sm);margin-top:10px}
+.sum-row span:first-child{color:var(--text-muted);font-size:14px;font-weight:500}
+.sum-val{font-size:18px;font-weight:600;font-family:'IBM Plex Sans Thai',sans-serif}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:680px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+.emp-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-light)}
+.emp-row:last-child{border-bottom:none}
+.emp-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.emp-name{font-weight:600;font-size:14px}
+.emp-sub{font-size:12px;color:var(--text-muted);margin-top:1px}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--text-muted);gap:10px;font-size:14px}
+.spinner{width:20px;height:20px;border:2px solid var(--gray-light);border-top-color:var(--primary);border-radius:50%;animation:rotate .7s linear infinite}
+@keyframes rotate{to{transform:rotate(360deg)}}
+
+.inv-bar{height:5px;border-radius:3px;background:var(--gray-light);overflow:hidden;margin-top:3px}
+.inv-fill{height:100%;border-radius:3px;transition:width .4s}
+
+#toast{position:fixed;bottom:24px;right:24px;padding:11px 18px;border-radius:var(--radius);font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,.2);z-index:9999;opacity:0;transition:opacity .28s;pointer-events:none;display:flex;align-items:center;gap:8px;color:#fff}
+#toast.show{opacity:1}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#D5D8DC;border-radius:3px}
+
+@media(max-width:600px){
+  .header-inner{padding:11px 14px}
+  .content{padding:14px 10px}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .kpi-val{font-size:19px}
+  .nav-btn{padding:11px 13px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo-icon">🥩</div>
+    <div>
+      <div class="logo-text">หมูคำหยก</div>
+      <span class="logo-sub">BACKEND SYSTEM</span>
+    </div>
+    <div class="header-right">
+      <div class="sync-badge">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-status">กำลังโหลด...</span>
+      </div>
+      <div class="date-badge" id="today-badge"></div>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" data-tab="dashboard"><i class="fa-solid fa-chart-line"></i> แดชบอร์ด</button>
+  <button class="nav-btn" data-tab="sales"><i class="fa-solid fa-cash-register"></i> รายรับ-รายจ่าย</button>
+  <button class="nav-btn" data-tab="cost"><i class="fa-solid fa-tags"></i> ราคา &amp; ทุน</button>
+  <button class="nav-btn" data-tab="payroll"><i class="fa-solid fa-user-group"></i> ค่าแรง &amp; โอที</button>
+  <button class="nav-btn" data-tab="timeclock"><i class="fa-solid fa-clock"></i> เวลาทำงาน</button>
+  <button class="nav-btn" data-tab="inventory"><i class="fa-solid fa-boxes-stacked"></i> วัตถุดิบ</button>
+</nav>
+
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="tab active" id="tab-dashboard">
+  <div class="kpi-grid">
+    <div class="kpi blue"><div class="kpi-label">รายรับเดือนนี้</div><div class="kpi-val" id="kpi-rev">—</div></div>
+    <div class="kpi red"><div class="kpi-label">รายจ่ายเดือนนี้</div><div class="kpi-val" id="kpi-exp">—</div></div>
+    <div class="kpi green"><div class="kpi-label">กำไรเดือนนี้</div><div class="kpi-val" id="kpi-profit">—</div></div>
+    <div class="kpi orange"><div class="kpi-label">กำไรสะสมรวม</div><div class="kpi-val" id="kpi-accum">—</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-chart-column"></i> รายรับรายวัน (เดือนนี้)</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#1A5276"></div>รายรับ</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#C0392B"></div>รายจ่าย</div>
+      </div>
+      <div class="chart-wrap" style="height:210px"><canvas id="chartMain" role="img" aria-label="รายรับรายจ่ายรายวัน"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-chart-pie"></i> สัดส่วนค่าใช้จ่าย</div>
+      <div class="chart-wrap" style="height:180px"><canvas id="chartPie" role="img" aria-label="สัดส่วนค่าใช้จ่าย"></canvas></div>
+      <div id="pie-legend" class="legend" style="margin-top:10px;justify-content:center"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> แจ้งเตือนวัตถุดิบใกล้หมด</div>
+    <div id="inv-alerts"><div class="loading"><div class="spinner"></div>กำลังโหลด...</div></div>
+  </div>
+</div>
+
+<!-- SALES -->
+<div class="tab" id="tab-sales">
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-circle-plus"></i> บันทึกรายรับ</div>
+    <div class="form-grid">
+      <div class="fg"><label>วันที่</label><input type="date" id="s-date"></div>
+      <div class="fg"><label>เงินโอน (฿)</label><input type="number" id="s-transfer" placeholder="0" min="0"></div>
+      <div class="fg"><label>เงินสด (฿)</label><input type="number" id="s-cash" placeholder="0" min="0"></div>
+      <div class="fg" style="min-width:120px"><label>หมายเหตุ</label><input type="text" id="s-note" placeholder="เช่น โอนแล้ว"></div>
+      <div class="fg" style="flex:0"><button class="btn btn-primary" onclick="addSale()"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>วันที่</th><th>เงินโอน</th><th>เงินสด</th><th>รวม</th><th>หมายเหตุ</th><th></th></tr></thead>
+      <tbody id="sales-body"><tr><td colspan="6" class="loading"><div class="spinner"></div>กำลังโหลด...</td></tr></tbody>
+    </table></div>
+    <div class="sum-row"><span>รายรับรวม</span><span class="sum-val" id="sales-total" style="color:var(--blue)">฿0</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-receipt"></i> บันทึกรายจ่าย</div>
+    <div class="form-grid">
+      <div class="fg"><label>วันที่</label><input type="date" id="e-date"></div>
+      <div class="fg" style="min-width:130px"><label>รายการ</label><input type="text" id="e-item" placeholder="เช่น น้ำ+น้ำแข็ง"></div>
+      <div class="fg"><label>หมวด</label>
+        <select id="e-cat">
+          <option value="daily">ค่าใช้จ่ายวัน</option>
+          <option value="raw">วัตถุดิบ</option>
+          <option value="pkg">Package</option>
+          <option value="shipping">ค่าขนส่ง</option>
+          <option value="wage">ค่าแรง</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+      <div class="fg" style="max-width:70px"><label>จำนวน</label><input type="number" id="e-qty" value="1" min="1"></div>
+      <div class="fg" style="max-width:105px"><label>ราคา/หน่วย</label><input type="number" id="e-price" placeholder="0" min="0"></div>
+      <div class="fg" style="flex:0"><button class="btn btn-primary" onclick="addExpense()"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>วันที่</th><th>รายการ</th><th>หมวด</th><th>จำนวน</th><th>ราคา/หน่วย</th><th>รวม</th><th></th></tr></thead>
+      <tbody id="expense-body"><tr><td colspan="7" class="loading"><div class="spinner"></div>กำลังโหลด...</td></tr></tbody>
+    </table></div>
+    <div class="sum-row"><span>รายจ่ายรวม</span><span class="sum-val" id="expense-total" style="color:var(--primary)">฿0</span></div>
+  </div>
+</div>
+
+<!-- COST -->
+<div class="tab" id="tab-cost">
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-scale-balanced"></i> ต้นทุน vs ราคาขาย</div>
+    <div class="form-grid">
+      <div class="fg"><label>ชื่อสินค้า</label><input type="text" id="p-name" placeholder="เช่น หมู(ถุง)"></div>
+      <div class="fg"><label>ต้นทุน/กล่อง (฿)</label><input type="number" id="p-cost" placeholder="0" min="0"></div>
+      <div class="fg"><label>ราคาขาย (฿)</label><input type="number" id="p-sell" placeholder="0" min="0"></div>
+      <div class="fg" style="flex:0"><button class="btn btn-primary" onclick="addProduct()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
+    </div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>สินค้า</th><th>ต้นทุน/กล่อง</th><th>ราคาขาย</th><th>กำไร/กล่อง</th><th>% กำไร</th><th></th></tr></thead>
+      <tbody id="cost-body"><tr><td colspan="6" class="loading"><div class="spinner"></div>กำลังโหลด...</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-calculator"></i> คำนวณต้นทุนต่อถุง</div>
+    <div class="form-grid">
+      <div class="fg"><label>หมู (ตัว)</label><input type="number" id="cc-pork" value="1" min="0" step="0.5" oninput="calcCost()"></div>
+      <div class="fg"><label>ราคาหมู/ตัว</label><input type="number" id="cc-pp" value="102" min="0" oninput="calcCost()"></div>
+      <div class="fg"><label>ผักกาด (กก.)</label><input type="number" id="cc-veg" value="0.5" min="0" step="0.1" oninput="calcCost()"></div>
+      <div class="fg"><label>ราคาผัก/กก.</label><input type="number" id="cc-vp" value="22" min="0" oninput="calcCost()"></div>
+      <div class="fg"><label>เครื่องปรุง (฿)</label><input type="number" id="cc-sp" value="50" min="0" oninput="calcCost()"></div>
+      <div class="fg"><label>Package (฿)</label><input type="number" id="cc-pkg" value="15" min="0" oninput="calcCost()"></div>
+      <div class="fg"><label>ราคาขาย/ถุง</label><input type="number" id="cc-sell" value="120" min="0" oninput="calcCost()"></div>
+    </div>
+    <div class="grid-3">
+      <div class="kpi orange" style="margin:0"><div class="kpi-label">ต้นทุน/ถุง</div><div class="kpi-val" id="cc-result">฿0</div></div>
+      <div class="kpi green" style="margin:0"><div class="kpi-label">กำไร/ถุง</div><div class="kpi-val" id="cc-profit">฿0</div></div>
+      <div class="kpi blue" style="margin:0"><div class="kpi-label">% กำไร</div><div class="kpi-val" id="cc-pct">0%</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAYROLL -->
+<div class="tab" id="tab-payroll">
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-user-plus"></i> เพิ่ม/แก้ไขพนักงาน</div>
+    <div class="form-grid">
+      <div class="fg"><label>ชื่อ</label><input type="text" id="emp-name" placeholder="ชื่อพนักงาน"></div>
+      <div class="fg"><label>ค่าแรง/วัน (฿)</label><input type="number" id="emp-rate" value="400" min="0"></div>
+      <div class="fg"><label>วันทำงาน</label><input type="number" id="emp-days" value="0" min="0"></div>
+      <div class="fg"><label>โอที (ชม.)</label><input type="number" id="emp-ot" value="0" min="0"></div>
+      <div class="fg"><label>โอที/ชม. (฿)</label><input type="number" id="emp-otr" value="50" min="0"></div>
+      <div class="fg"><label>เบิกล่วงหน้า (฿)</label><input type="number" id="emp-adv" value="0" min="0"></div>
+      <div class="fg" style="flex:0"><button class="btn btn-primary" onclick="addEmployee()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-table"></i> สรุปค่าแรง</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>ชื่อ</th><th>ค่าแรง/วัน</th><th>วัน</th><th>ค่าแรงรวม</th><th>โอที ชม.</th><th>รวมโอที</th><th>เบิกล่วงหน้า</th><th>สุทธิ</th><th></th></tr></thead>
+      <tbody id="payroll-body"><tr><td colspan="9" class="loading"><div class="spinner"></div>กำลังโหลด...</td></tr></tbody>
+    </table></div>
+    <div class="sum-row"><span>ค่าแรงสุทธิรวม</span><span class="sum-val" id="payroll-total" style="color:var(--accent)">฿0</span></div>
+  </div>
+</div>
+
+<!-- TIMECLOCK -->
+<div class="tab" id="tab-timeclock">
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-fingerprint"></i> บันทึกเวลาเข้า-ออกงาน</div>
+    <div class="form-grid">
+      <div class="fg"><label>พนักงาน</label><select id="tc-emp"><option value="">-- เลือก --</option></select></div>
+      <div class="fg"><label>วันที่</label><input type="date" id="tc-date"></div>
+      <div class="fg"><label>เวลาเข้า</label><input type="time" id="tc-in"></div>
+      <div class="fg"><label>เวลาออก</label><input type="time" id="tc-out"></div>
+      <div class="fg"><label>สถานะ</label>
+        <select id="tc-st">
+          <option value="normal">ปกติ</option>
+          <option value="ot">โอที</option>
+          <option value="late">มาสาย</option>
+          <option value="absent">ขาดงาน</option>
+        </select>
+      </div>
+      <div class="fg" style="flex:0"><button class="btn btn-primary" onclick="addTimeRecord()"><i class="fa-solid fa-stamp"></i> บันทึก</button></div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-list-check"></i> ประวัติการทำงาน</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>วันที่</th><th>พนักงาน</th><th>เข้า</th><th>ออก</th><th>ชม.</th><th>สถานะ</th><th></th></tr></thead>
+        <tbody id="tc-body"><tr><td colspan="7" class="loading"><div class="spinner"></div>กำลังโหลด...</td></tr></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fa-solid fa-users"></i> สรุปรายพนักงาน</div>
+      <div id="tc-summary"><div class="loading"><div class="spinner"></div>กำลังโหลด...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- INVENTORY -->
+<div class="tab" id="tab-inventory">
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-plus-circle"></i> เพิ่มวัตถุดิบ</div>
+    <div class="form-grid">
+      <div class="fg"><label>รายการ</label><input type="text" id="inv-name" placeholder="เช่น หมู"></div>
+      <div class="fg"><label>จำนวน</label><input type="number" id="inv-qty" placeholder="0" min="0"></div>
+      <div class="fg"><label>หน่วย</label><input type="text" id="inv-unit" placeholder="ตัว/กก./ถุง"></div>
+      <div class="fg"><label>ราคา/หน่วย</label><input type="number" id="inv-price" placeholder="0" min="0" step="0.5"></div>
+      <div class="fg"><label>แจ้งเตือนน้อยกว่า</label><input type="number" id="inv-min" placeholder="5" min="0"></div>
+      <div class="fg" style="flex:0"><button class="btn btn-primary" onclick="addInventory()"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fa-solid fa-warehouse"></i> สต็อกวัตถุดิบ</div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>รายการ</th><th>คงเหลือ</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>มูลค่า</th><th>ระดับ</th><th>สถานะ</th><th>ปรับ</th></tr></thead>
+      <tbody id="inv-body"><tr><td colspan="8" class="loading"><div class="spinner"></div>กำลังโหลด...</td></tr></tbody>
+    </table></div>
+    <div class="sum-row"><span>มูลค่าวัตถุดิบรวม</span><span class="sum-val" id="inv-total" style="color:var(--blue)">฿0</span></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<div id="toast"><i class="fa-solid fa-check" id="toast-icon"></i><span id="toast-msg">บันทึกแล้ว</span></div>
+
+<script>
+const SUPABASE_URL = 'https://pzlwwqlygpmlfguupznb.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6bHd3cWx5Z3BtbGZndXVwem5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NDU1NjMsImV4cCI6MjA5NjEyMTU2M30.83tTAoORaYZIxVP40pS6Pgb7rbb8VzVJRIx84aZt16k';
+const H = {'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'return=representation'};
+
+async function db(table, method='GET', body=null, filter=''){
+  setSyncing(true);
+  try{
+    const url = `${SUPABASE_URL}/rest/v1/${table}${filter}`;
+    const opts = {method, headers: H};
+    if(body) opts.body = JSON.stringify(body);
+    const res = await fetch(url, opts);
+    if(!res.ok){ const e=await res.text(); throw new Error(e); }
+    const data = method==='DELETE'?[]:await res.json();
+    setSynced();
+    return data;
+  }catch(e){
+    setError();
+    throw e;
+  }
+}
+
+function setSyncing(v){
+  if(!v) return;
+  document.getElementById('sync-dot').className='sync-dot syncing';
+  document.getElementById('sync-status').textContent='กำลังซิงค์...';
+}
+function setSynced(){
+  const dot=document.getElementById('sync-dot');
+  dot.className='sync-dot';
+  const t=new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('sync-status').textContent='ซิงค์แล้ว '+t;
+}
+function setError(){
+  document.getElementById('sync-dot').className='sync-dot error';
+  document.getElementById('sync-status').textContent='ซิงค์ไม่ได้';
+}
+
+const fmt = n => '฿'+Math.round(n).toLocaleString('th-TH');
+const today = () => new Date().toISOString().split('T')[0];
+const catL = {daily:'ค่าใช้จ่ายวัน',raw:'วัตถุดิบ',pkg:'Package',shipping:'ค่าขนส่ง',wage:'ค่าแรง',other:'อื่นๆ'};
+const catC = {daily:'badge-gray',raw:'badge-green',pkg:'badge-blue',shipping:'badge-orange',wage:'badge-red',other:'badge-gray'};
+const stMap = {
+  normal:'<span class="badge badge-green"><i class="fa-solid fa-check"></i> ปกติ</span>',
+  ot:'<span class="badge badge-orange"><i class="fa-solid fa-clock"></i> โอที</span>',
+  late:'<span class="badge badge-red"><i class="fa-solid fa-exclamation"></i> มาสาย</span>',
+  absent:'<span class="badge badge-gray"><i class="fa-solid fa-xmark"></i> ขาด</span>'
+};
+
+function showToast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  document.getElementById('toast-icon').className=type==='err'?'fa-solid fa-triangle-exclamation':'fa-solid fa-check';
+  t.style.background=type==='err'?'#C0392B':'#27AE60';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// SET DATES
+document.getElementById('today-badge').textContent=new Date().toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'2-digit'});
+document.getElementById('s-date').value=today();
+document.getElementById('e-date').value=today();
+document.getElementById('tc-date').value=today();
+
+// NAV
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    this.classList.add('active');
+    const id=this.dataset.tab;
+    document.getElementById('tab-'+id).classList.add('active');
+    if(id==='dashboard') loadDashboard();
+    else if(id==='sales'){loadSales();loadExpenses();}
+    else if(id==='cost') loadProducts();
+    else if(id==='payroll') loadEmployees();
+    else if(id==='timeclock'){loadTimeRecords();loadTcSelect();}
+    else if(id==='inventory') loadInventory();
+  });
+});
+
+// ======================== SALES ========================
+async function loadSales(){
+  const rows = await db('sales','GET',null,'?order=date.desc&limit=100');
+  const tbody=document.getElementById('sales-body');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">ยังไม่มีข้อมูล</td></tr>';document.getElementById('sales-total').textContent=fmt(0);return;}
+  const total=rows.reduce((a,r)=>a+Number(r.transfer)+Number(r.cash),0);
+  tbody.innerHTML=rows.map(r=>`<tr>
+    <td>${r.date}</td><td>${fmt(r.transfer)}</td><td>${fmt(r.cash)}</td>
+    <td><strong>${fmt(Number(r.transfer)+Number(r.cash))}</strong></td>
+    <td>${r.note||'—'}</td>
+    <td><button class="btn btn-icon btn-sm" style="color:var(--primary)" onclick="delSale('${r.id}')"><i class="fa-solid fa-trash-can"></i></button></td>
+  </tr>`).join('');
+  document.getElementById('sales-total').textContent=fmt(total);
+}
+async function addSale(){
+  const d=document.getElementById('s-date').value;
+  const t=+document.getElementById('s-transfer').value||0;
+  const c=+document.getElementById('s-cash').value||0;
+  const n=document.getElementById('s-note').value;
+  if(!d||(t+c<=0)) return showToast('กรุณาใส่วันที่และยอดเงิน','err');
+  await db('sales','POST',{date:d,transfer:t,cash:c,note:n});
+  document.getElementById('s-transfer').value='';
+  document.getElementById('s-cash').value='';
+  document.getElementById('s-note').value='';
+  loadSales(); loadDashboard(); showToast('บันทึกรายรับแล้ว');
+}
+async function delSale(id){
+  if(!confirm('ลบรายการนี้?')) return;
+  await db('sales','DELETE',null,`?id=eq.${id}`);
+  loadSales(); loadDashboard(); showToast('ลบแล้ว');
+}
+
+// ======================== EXPENSES ========================
+async function loadExpenses(){
+  const rows=await db('expenses','GET',null,'?order=date.desc&limit=100');
+  const tbody=document.getElementById('expense-body');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">ยังไม่มีข้อมูล</td></tr>';document.getElementById('expense-total').textContent=fmt(0);return;}
+  const total=rows.reduce((a,r)=>a+Number(r.qty)*Number(r.price),0);
+  tbody.innerHTML=rows.map(r=>`<tr>
+    <td>${r.date}</td><td>${r.item}</td>
+    <td><span class="badge ${catC[r.category]||'badge-gray'}">${catL[r.category]||r.category}</span></td>
+    <td>${r.qty}</td><td>${fmt(r.price)}</td>
+    <td><strong>${fmt(Number(r.qty)*Number(r.price))}</strong></td>
+    <td><button class="btn btn-icon btn-sm" style="color:var(--primary)" onclick="delExpense('${r.id}')"><i class="fa-solid fa-trash-can"></i></button></td>
+  </tr>`).join('');
+  document.getElementById('expense-total').textContent=fmt(total);
+}
+async function addExpense(){
+  const d=document.getElementById('e-date').value;
+  const item=document.getElementById('e-item').value.trim();
+  const cat=document.getElementById('e-cat').value;
+  const qty=+document.getElementById('e-qty').value||1;
+  const price=+document.getElementById('e-price').value||0;
+  if(!d||!item||price<=0) return showToast('กรุณากรอกข้อมูลให้ครบ','err');
+  await db('expenses','POST',{date:d,item,category:cat,qty,price});
+  document.getElementById('e-item').value='';
+  document.getElementById('e-price').value='';
+  document.getElementById('e-qty').value='1';
+  loadExpenses(); loadDashboard(); showToast('บันทึกรายจ่ายแล้ว');
+}
+async function delExpense(id){
+  if(!confirm('ลบรายการนี้?')) return;
+  await db('expenses','DELETE',null,`?id=eq.${id}`);
+  loadExpenses(); loadDashboard(); showToast('ลบแล้ว');
+}
+
+// ======================== PRODUCTS ========================
+async function loadProducts(){
+  const rows=await db('products','GET',null,'?order=name.asc');
+  document.getElementById('cost-body').innerHTML=rows.map((p,i)=>{
+    const gp=Number(p.sell)-Number(p.cost);
+    const pct=p.sell?Math.round(gp/p.sell*100):0;
+    return `<tr>
+      <td><strong>${p.name}</strong></td>
+      <td>${fmt(p.cost)}</td><td>${fmt(p.sell)}</td>
+      <td style="color:${gp>=0?'var(--green)':'var(--primary)'}"><strong>${fmt(gp)}</strong></td>
+      <td><span class="badge ${pct>=25?'badge-green':pct>=0?'badge-orange':'badge-red'}">${pct}%</span></td>
+      <td><button class="btn btn-icon btn-sm" style="color:var(--primary)" onclick="delProduct('${p.id}')"><i class="fa-solid fa-trash-can"></i></button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">ยังไม่มีข้อมูล</td></tr>';
+}
+async function addProduct(){
+  const n=document.getElementById('p-name').value.trim();
+  const c=+document.getElementById('p-cost').value||0;
+  const s=+document.getElementById('p-sell').value||0;
+  if(!n) return showToast('กรุณาใส่ชื่อสินค้า','err');
+  await db('products','POST',{name:n,cost:c,sell:s,'on_conflict':'name'});
+  document.getElementById('p-name').value='';document.getElementById('p-cost').value='';document.getElementById('p-sell').value='';
+  loadProducts(); showToast('บันทึกแล้ว');
+}
+async function delProduct(id){
+  if(!confirm('ลบสินค้านี้?')) return;
+  await db('products','DELETE',null,`?id=eq.${id}`);
+  loadProducts(); showToast('ลบแล้ว');
+}
+function calcCost(){
+  const cost=(+document.getElementById('cc-pork').value||0)*(+document.getElementById('cc-pp').value||0)+(+document.getElementById('cc-veg').value||0)*(+document.getElementById('cc-vp').value||0)+(+document.getElementById('cc-sp').value||0)+(+document.getElementById('cc-pkg').value||0);
+  const sell=+document.getElementById('cc-sell').value||0;
+  const profit=sell-cost;
+  const pct=sell?Math.round(profit/sell*100):0;
+  document.getElementById('cc-result').textContent=fmt(cost);
+  document.getElementById('cc-profit').textContent=fmt(profit);
+  document.getElementById('cc-profit').style.color=profit>=0?'var(--green)':'var(--primary)';
+  document.getElementById('cc-pct').textContent=pct+'%';
+}
+calcCost();
+
+// ======================== EMPLOYEES ========================
+async function loadEmployees(){
+  const rows=await db('employees','GET',null,'?order=name.asc');
+  let grand=0;
+  document.getElementById('payroll-body').innerHTML=rows.map(e=>{
+    const base=Number(e.rate)*Number(e.days);
+    const ot=Number(e.ot_hours)*Number(e.ot_rate);
+    const net=base+ot-Number(e.advance);
+    grand+=net;
+    return `<tr>
+      <td><strong>${e.name}</strong></td><td>${fmt(e.rate)}</td><td>${e.days}</td>
+      <td>${fmt(base)}</td><td>${e.ot_hours} ชม.</td>
+      <td style="color:var(--accent)">${fmt(ot)}</td>
+      <td style="color:var(--primary)">${fmt(e.advance)}</td>
+      <td><strong style="color:var(--green)">${fmt(net)}</strong></td>
+      <td>
+        <button class="btn btn-icon btn-sm" onclick="fillEmployee(${JSON.stringify(e).replace(/"/g,'&quot;')})" title="แก้ไข"><i class="fa-solid fa-pen"></i></button>
+        <button class="btn btn-icon btn-sm" style="color:var(--primary)" onclick="delEmployee('${e.id}')"><i class="fa-solid fa-trash-can"></i></button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px">ยังไม่มีข้อมูล</td></tr>';
+  document.getElementById('payroll-total').textContent=fmt(grand);
+}
+async function addEmployee(){
+  const n=document.getElementById('emp-name').value.trim();
+  if(!n) return showToast('กรุณาใส่ชื่อพนักงาน','err');
+  const obj={name:n,rate:+document.getElementById('emp-rate').value||400,days:+document.getElementById('emp-days').value||0,ot_hours:+document.getElementById('emp-ot').value||0,ot_rate:+document.getElementById('emp-otr').value||50,advance:+document.getElementById('emp-adv').value||0};
+  const exist=await db('employees','GET',null,`?name=eq.${encodeURIComponent(n)}`);
+  if(exist.length) await db('employees','PATCH',obj,`?id=eq.${exist[0].id}`);
+  else await db('employees','POST',obj);
+  document.getElementById('emp-name').value='';
+  loadEmployees(); loadTcSelect(); showToast('บันทึกพนักงานแล้ว');
+}
+function fillEmployee(e){
+  document.getElementById('emp-name').value=e.name;
+  document.getElementById('emp-rate').value=e.rate;
+  document.getElementById('emp-days').value=e.days;
+  document.getElementById('emp-ot').value=e.ot_hours;
+  document.getElementById('emp-otr').value=e.ot_rate;
+  document.getElementById('emp-adv').value=e.advance;
+  document.getElementById('emp-name').focus();
+}
+async function delEmployee(id){
+  if(!confirm('ลบพนักงานนี้?')) return;
+  await db('employees','DELETE',null,`?id=eq.${id}`);
+  loadEmployees(); loadTcSelect(); showToast('ลบแล้ว');
+}
+async function loadTcSelect(){
+  const rows=await db('employees','GET',null,'?order=name.asc&select=name');
+  const sel=document.getElementById('tc-emp');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- เลือกพนักงาน --</option>';
+  rows.forEach(e=>sel.innerHTML+=`<option value="${e.name}" ${e.name===cur?'selected':''}>${e.name}</option>`);
+}
+
+// ======================== TIMECLOCK ========================
+async function loadTimeRecords(){
+  const rows=await db('time_records','GET',null,'?order=date.desc,employee_name.asc&limit=100');
+  document.getElementById('tc-body').innerHTML=rows.map(r=>`<tr>
+    <td>${r.date}</td><td><strong>${r.employee_name}</strong></td>
+    <td>${r.time_in||'—'}</td><td>${r.time_out||'—'}</td>
+    <td>${r.hours>0?r.hours+' ชม.':'—'}</td>
+    <td>${stMap[r.status]||r.status}</td>
+    <td><button class="btn btn-icon btn-sm" style="color:var(--primary)" onclick="delTime('${r.id}')"><i class="fa-solid fa-trash-can"></i></button></td>
+  </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">ยังไม่มีข้อมูล</td></tr>';
+  renderTcSummary(rows);
+}
+async function addTimeRecord(){
+  const emp=document.getElementById('tc-emp').value;
+  const d=document.getElementById('tc-date').value;
+  const tin=document.getElementById('tc-in').value;
+  const tout=document.getElementById('tc-out').value;
+  const st=document.getElementById('tc-st').value;
+  if(!emp||!d) return showToast('กรุณาเลือกพนักงานและวันที่','err');
+  let hrs=0;
+  if(tin&&tout){const[ih,im]=tin.split(':').map(Number);const[oh,om]=tout.split(':').map(Number);hrs=parseFloat(((oh*60+om-(ih*60+im))/60).toFixed(1));if(hrs<0)hrs+=24;}
+  await db('time_records','POST',{employee_name:emp,date:d,time_in:tin||null,time_out:tout||null,hours:hrs,status:st});
+  document.getElementById('tc-in').value='';document.getElementById('tc-out').value='';
+  loadTimeRecords(); showToast('บันทึกเวลาแล้ว');
+}
+async function delTime(id){
+  if(!confirm('ลบรายการนี้?')) return;
+  await db('time_records','DELETE',null,`?id=eq.${id}`);
+  loadTimeRecords(); showToast('ลบแล้ว');
+}
+function renderTcSummary(rows){
+  const map={};
+  rows.forEach(r=>{
+    if(!map[r.employee_name]) map[r.employee_name]={days:0,hrs:0,ot:0,late:0,absent:0};
+    if(r.status!=='absent'){map[r.employee_name].days++;map[r.employee_name].hrs+=Number(r.hours);}
+    if(r.status==='ot')map[r.employee_name].ot++;
+    if(r.status==='late')map[r.employee_name].late++;
+    if(r.status==='absent')map[r.employee_name].absent++;
+  });
+  const div=document.getElementById('tc-summary');
+  if(!Object.keys(map).length){div.innerHTML='<p style="color:var(--text-muted);font-size:13px;padding:16px 0">ยังไม่มีข้อมูลการทำงาน</p>';return;}
+  div.innerHTML=Object.entries(map).map(([name,s])=>`
+    <div class="emp-row">
+      <div class="emp-avatar">${name.slice(0,2)}</div>
+      <div style="flex:1">
+        <div class="emp-name">${name}</div>
+        <div class="emp-sub">${s.days} วัน · ${s.hrs.toFixed(1)} ชม.${s.ot?' · โอที '+s.ot:''}${s.late?' · สาย '+s.late:''}${s.absent?' · ขาด '+s.absent:''}</div>
+        <div class="inv-bar"><div class="inv-fill" style="width:${Math.min(100,s.days/26*100).toFixed(0)}%;background:var(--primary)"></div></div>
+      </div>
+      ${s.absent>0?'<span class="badge badge-red">ขาด '+s.absent+'</span>':s.late>0?'<span class="badge badge-orange">สาย '+s.late+'</span>':'<span class="badge badge-green">ดี</span>'}
+    </div>`).join('');
+}
+
+// ======================== INVENTORY ========================
+async function loadInventory(){
+  const rows=await db('inventory','GET',null,'?order=name.asc');
+  let total=0;
+  document.getElementById('inv-body').innerHTML=rows.map(r=>{
+    const val=Number(r.qty)*Number(r.price);
+    total+=val;
+    const low=Number(r.qty)<=Number(r.min_qty);
+    const pct=r.min_qty>0?Math.min(100,Math.round(Number(r.qty)/Number(r.min_qty)*50)):100;
+    return `<tr>
+      <td><strong>${r.name}</strong></td>
+      <td style="color:${low?'var(--primary)':'inherit'};font-weight:${low?600:400}">${r.qty}</td>
+      <td>${r.unit}</td><td>${fmt(r.price)}</td><td>${fmt(val)}</td>
+      <td style="min-width:70px"><div class="inv-bar"><div class="inv-fill" style="width:${pct}%;background:${low?'var(--primary)':'var(--green)'}"></div></div></td>
+      <td><span class="badge ${low?'badge-red':'badge-green'}">${low?'ใกล้หมด':'ปกติ'}</span></td>
+      <td style="display:flex;gap:3px">
+        <button class="btn btn-icon btn-sm" onclick="adjInv('${r.id}',${Number(r.qty)},-1)"><i class="fa-solid fa-minus"></i></button>
+        <button class="btn btn-icon btn-sm" onclick="adjInv('${r.id}',${Number(r.qty)},1)"><i class="fa-solid fa-plus"></i></button>
+        <button class="btn btn-icon btn-sm" style="color:var(--primary)" onclick="delInv('${r.id}')"><i class="fa-solid fa-trash-can"></i></button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:20px">ยังไม่มีข้อมูล</td></tr>';
+  document.getElementById('inv-total').textContent=fmt(total);
+  renderInvAlerts(rows);
+}
+async function addInventory(){
+  const n=document.getElementById('inv-name').value.trim();
+  const q=+document.getElementById('inv-qty').value||0;
+  const u=document.getElementById('inv-unit').value||'หน่วย';
+  const p=+document.getElementById('inv-price').value||0;
+  const m=+document.getElementById('inv-min').value||5;
+  if(!n) return showToast('กรุณาใส่ชื่อวัตถุดิบ','err');
+  const exist=await db('inventory','GET',null,`?name=eq.${encodeURIComponent(n)}`);
+  if(exist.length) await db('inventory','PATCH',{qty:q,unit:u,price:p,min_qty:m},`?id=eq.${exist[0].id}`);
+  else await db('inventory','POST',{name:n,qty:q,unit:u,price:p,min_qty:m});
+  ['inv-name','inv-qty','inv-unit','inv-price','inv-min'].forEach(id=>document.getElementById(id).value='');
+  loadInventory(); showToast('บันทึกวัตถุดิบแล้ว');
+}
+async function adjInv(id,cur,delta){
+  const newQty=Math.max(0,cur+delta);
+  await db('inventory','PATCH',{qty:newQty},`?id=eq.${id}`);
+  loadInventory();
+}
+async function delInv(id){
+  if(!confirm('ลบรายการนี้?')) return;
+  await db('inventory','DELETE',null,`?id=eq.${id}`);
+  loadInventory(); showToast('ลบแล้ว');
+}
+function renderInvAlerts(rows){
+  const low=rows.filter(r=>Number(r.qty)<=Number(r.min_qty));
+  document.getElementById('inv-alerts').innerHTML=low.length
+    ?`<div style="display:flex;flex-wrap:wrap;gap:8px">${low.map(r=>`<span class="badge badge-red"><i class="fa-solid fa-triangle-exclamation"></i> ${r.name} เหลือ ${r.qty} ${r.unit}</span>`).join('')}</div>`
+    :'<p style="color:var(--green);font-size:13px;display:flex;align-items:center;gap:6px"><i class="fa-solid fa-circle-check"></i> วัตถุดิบพอเพียงทุกรายการ</p>';
+}
+
+// ======================== DASHBOARD ========================
+let charts={};
+async function loadDashboard(){
+  const [allSales,allExp,invRows]=await Promise.all([
+    db('sales','GET',null,'?order=date.asc'),
+    db('expenses','GET',null,'?order=date.asc'),
+    db('inventory','GET',null,'?order=name.asc'),
+  ]);
+  const now=new Date();
+  const ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const monthSales=allSales.filter(r=>r.date.startsWith(ym));
+  const monthExp=allExp.filter(r=>r.date.startsWith(ym));
+  const mRev=monthSales.reduce((a,r)=>a+Number(r.transfer)+Number(r.cash),0);
+  const mExp=monthExp.reduce((a,r)=>a+Number(r.qty)*Number(r.price),0);
+  const mProfit=mRev-mExp;
+  const tRev=allSales.reduce((a,r)=>a+Number(r.transfer)+Number(r.cash),0);
+  const tExp=allExp.reduce((a,r)=>a+Number(r.qty)*Number(r.price),0);
+
+  document.getElementById('kpi-rev').textContent=fmt(mRev);
+  document.getElementById('kpi-exp').textContent=fmt(mExp);
+  document.getElementById('kpi-profit').textContent=fmt(mProfit);
+  document.getElementById('kpi-profit').style.color=mProfit>=0?'var(--green)':'var(--primary)';
+  document.getElementById('kpi-accum').textContent=fmt(tRev-tExp);
+
+  // bar chart
+  const dMap={},eMap={};
+  monthSales.forEach(r=>{const d=r.date.split('-')[2];dMap[d]=(dMap[d]||0)+Number(r.transfer)+Number(r.cash);});
+  monthExp.forEach(r=>{const d=r.date.split('-')[2];eMap[d]=(eMap[d]||0)+Number(r.qty)*Number(r.price);});
+  const days=[...new Set([...Object.keys(dMap),...Object.keys(eMap)])].sort();
+
+  if(charts.main) charts.main.destroy();
+  charts.main=new Chart(document.getElementById('chartMain'),{
+    type:'bar',
+    data:{labels:days,datasets:[
+      {label:'รายรับ',data:days.map(d=>dMap[d]||0),backgroundColor:'#1A527688',borderRadius:3},
+      {label:'รายจ่าย',data:days.map(d=>eMap[d]||0),backgroundColor:'#C0392B66',borderRadius:3}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:10}},grid:{display:false}},y:{ticks:{font:{size:10},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+
+  // pie chart
+  const cats={raw:0,pkg:0,wage:0,daily:0,other:0};
+  allExp.forEach(r=>{const k=r.category in cats?r.category:'other';cats[k]+=Number(r.qty)*Number(r.price);});
+  const pLabels=['วัตถุดิบ','Package','ค่าแรง','ค่าใช้จ่ายวัน','อื่นๆ'];
+  const pColors=['#1E8449','#1A5276','#C0392B','#E67E22','#85929E'];
+  const pData=[cats.raw,cats.pkg,cats.wage,cats.daily,cats.other];
+  if(charts.pie) charts.pie.destroy();
+  charts.pie=new Chart(document.getElementById('chartPie'),{
+    type:'doughnut',
+    data:{labels:pLabels,datasets:[{data:pData,backgroundColor:pColors,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false}}}
+  });
+  const tE=pData.reduce((a,v)=>a+v,0);
+  document.getElementById('pie-legend').innerHTML=pLabels.map((l,i)=>{
+    const pct=tE?Math.round(pData[i]/tE*100):0;
+    return `<div class="legend-item"><div class="legend-dot" style="background:${pColors[i]}"></div>${l} ${pct}%</div>`;
+  }).join('');
+
+  renderInvAlerts(invRows);
+}
+
+// INIT
+loadDashboard();
+loadSales();
+loadExpenses();
+</script>
+</body>
+</html>
