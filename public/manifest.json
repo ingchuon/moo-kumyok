@@ -1,0 +1,15 @@
+{
+  "name": "หมูคำหยก Backend",
+  "short_name": "คำหยก 🥩",
+  "description": "ระบบหลังบ้านร้านหมูคำหยก",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#922B21",
+  "theme_color": "#C0392B",
+  "orientation": "portrait-primary",
+  "lang": "th",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
