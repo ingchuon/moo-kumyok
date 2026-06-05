@@ -19,21 +19,21 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --red:#C0392B;--rd:#922B21;--rl:#F9EBEA;
+  --red:#1E8449;--rd:#145A32;--rl:#EAFAF1;
   --or:#E67E22;--ol:#FEF9E7;
-  --gn:#1E8449;--gl:#EAFAF1;
-  --bl:#1A5276;--bll:#EAF2F8;
-  --pu:#6C3483;--pl:#F5EEF8;
+  --gn:#1A5276;--gl:#EAF2F8;
+  --bl:#6C3483;--bll:#F5EEF8;
+  --pu:#2E86C1;--pl:#EBF5FB;
   --gy:#5D6D7E;--gyl:#F2F3F4;
   --bdr:#E0E0E0;--wh:#fff;--tx:#1C2833;--mu:#7F8C8D;
   --sh:0 2px 12px rgba(0,0,0,.07);--r:12px;--rs:8px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 html{font-size:16px}
-body{font-family:'Sarabun',sans-serif;background:#F0EFED;color:var(--tx);min-height:100vh;overscroll-behavior:none}
+body{font-family:'Sarabun',sans-serif;background:#F0F4F0;color:var(--tx);min-height:100vh;overscroll-behavior:none}
 
 /* LOGIN */
-#login-screen{position:fixed;inset:0;background:linear-gradient(160deg,var(--rd) 0%,var(--red) 50%,var(--or) 100%);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+#login-screen{position:fixed;inset:0;background:linear-gradient(160deg,var(--rd) 0%,var(--red) 50%,#27AE60 100%);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
 .login-box{background:#fff;border-radius:20px;padding:clamp(28px,6vw,44px) clamp(24px,6vw,40px);width:100%;max-width:360px;box-shadow:0 24px 64px rgba(0,0,0,.3)}
 .login-logo{width:72px;height:72px;background:var(--rl);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 18px}
 .login-title{font-family:'IBM Plex Sans Thai',sans-serif;font-weight:600;font-size:22px;text-align:center;margin-bottom:4px}
@@ -41,7 +41,7 @@ body{font-family:'Sarabun',sans-serif;background:#F0EFED;color:var(--tx);min-hei
 .lf{margin-bottom:16px}
 .lf label{display:block;font-size:12px;font-weight:600;color:var(--mu);margin-bottom:6px;letter-spacing:.3px}
 .lf input{width:100%;padding:12px 14px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-family:'Sarabun',sans-serif;font-size:16px;color:var(--tx);outline:none;transition:border .18s}
-.lf input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.1)}
+.lf input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(30,132,73,.15)}
 .login-btn{width:100%;padding:13px;background:var(--red);color:#fff;border:none;border-radius:var(--rs);font-family:'Sarabun',sans-serif;font-size:16px;font-weight:500;cursor:pointer;margin-top:6px;transition:all .15s;letter-spacing:.3px}
 .login-btn:active{transform:scale(.98)}
 .login-err{color:var(--red);font-size:12px;margin-top:10px;min-height:16px;text-align:center}
@@ -50,14 +50,14 @@ body{font-family:'Sarabun',sans-serif;background:#F0EFED;color:var(--tx);min-hei
 #app{display:none;min-height:100vh;padding-bottom:calc(64px + var(--safe-bottom))}
 
 /* HEADER */
-.hdr{background:linear-gradient(135deg,var(--rd),var(--red) 60%,var(--or));color:#fff;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(192,57,43,.3);padding-top:env(safe-area-inset-top,0)}
+.hdr{background:linear-gradient(135deg,var(--rd),var(--red) 60%,#27AE60);color:#fff;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(30,132,73,.3);padding-top:env(safe-area-inset-top,0)}
 .hi{display:flex;align-items:center;gap:10px;padding:10px 16px}
 .lic{width:34px;height:34px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
 .ltx{font-family:'IBM Plex Sans Thai',sans-serif;font-weight:600;font-size:15px}
 .lsb{font-size:10px;opacity:.7;letter-spacing:.4px;display:block;margin-top:-2px}
 .hdr-r{margin-left:auto;display:flex;align-items:center;gap:7px;flex-shrink:0}
 .sb{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.15);border-radius:20px;padding:4px 10px;font-size:11px}
-.sd{width:6px;height:6px;border-radius:50%;background:#2ECC71;flex-shrink:0}
+.sd{width:6px;height:6px;border-radius:50%;background:#A9DFBF;flex-shrink:0}
 .sd.busy{background:#F39C12;animation:bk .7s infinite}
 .sd.err{background:#E74C3C}
 @keyframes bk{0%,100%{opacity:1}50%{opacity:.3}}
@@ -149,7 +149,7 @@ tbody tr:hover{background:#FAFAFA}
 .fg label{font-size:11px;font-weight:600;color:var(--mu);letter-spacing:.3px}
 input[type=text],input[type=number],input[type=date],input[type=time],input[type=tel],input[type=month],textarea,select{font-family:'Sarabun',sans-serif;font-size:14px;padding:9px 10px;border:1.5px solid #D5D8DC;border-radius:var(--rs);background:var(--wh);color:var(--tx);width:100%;outline:none;-webkit-appearance:none;appearance:none;transition:border .18s}
 textarea{resize:vertical;min-height:64px}
-input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(192,57,43,.08)}
+input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(30,132,73,.1)}
 
 /* SLIP */
 .slip-zone{border:2px dashed var(--bdr);border-radius:var(--rs);padding:10px;text-align:center;cursor:pointer;background:var(--wh);position:relative;min-height:44px;display:flex;align-items:center;justify-content:center}
@@ -161,12 +161,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 .btn{padding:8px 14px;border-radius:var(--rs);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--bdr);background:var(--wh);color:var(--tx);transition:all .15s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;min-height:38px}
 .btn:active{transform:scale(.97)}
 .bp{background:var(--red);color:#fff;border-color:var(--red)}.bp:hover{background:var(--rd)}
-.bgn2{background:var(--gn);color:#fff;border-color:var(--gn)}
+.bgn2{background:var(--gn);color:#fff;border-color:var(--gn)}.bgn2:hover{background:#154360}
 .bgy{background:var(--gyl);color:var(--gy);border-color:var(--bdr)}
 .bsm{padding:5px 8px;font-size:11px;min-height:32px}
 .bic{padding:5px 8px;background:none;border-color:transparent;color:var(--mu);min-height:32px}
 .bic:hover{background:var(--rl);color:var(--red);border-color:transparent}
-.bic.edit:hover{background:#FEF9E7;color:var(--or)}
+.bic.edit:hover{background:#EBF5FB;color:var(--gn)}
 
 /* BADGE */
 .badge{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
@@ -368,6 +368,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   <div style="margin-left:auto;display:flex;gap:6px">
     <button class="btn btn-exp bsm" onclick="exportExcel('expense')"><i class="fa-solid fa-file-excel"></i> Export</button>
     <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'expense')"></label>
+    <button class="btn bgy bsm" onclick="downloadTemplate('expense')" title="ดาวน์โหลด Template"><i class="fa-solid fa-download"></i> Template</button>
   </div>
 </div>
 <div id="import-preview-expense"></div>
@@ -406,6 +407,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   <div style="margin-left:auto;display:flex;gap:6px">
     <button class="btn btn-exp bsm" onclick="exportExcel('boxes')"><i class="fa-solid fa-file-excel"></i> Export</button>
     <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'boxes')"></label>
+    <button class="btn bgy bsm" onclick="downloadTemplate('boxes')" title="ดาวน์โหลด Template"><i class="fa-solid fa-download"></i> Template</button>
   </div>
 </div>
 <div id="import-preview-boxes"></div>
@@ -477,6 +479,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   <div style="margin-left:auto;display:flex;gap:6px">
     <button class="btn btn-exp bsm" onclick="exportExcel('pay')"><i class="fa-solid fa-file-excel"></i> Export</button>
     <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'pay')"></label>
+    <button class="btn bgy bsm" onclick="downloadTemplate('pay')" title="ดาวน์โหลด Template"><i class="fa-solid fa-download"></i> Template</button>
   </div>
 </div>
 <div id="import-preview-pay"></div>
@@ -530,6 +533,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   <div style="margin-left:auto;display:flex;gap:6px">
     <button class="btn btn-exp bsm" onclick="exportExcel('tc')"><i class="fa-solid fa-file-excel"></i> Export</button>
     <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'tc')"></label>
+    <button class="btn bgy bsm" onclick="downloadTemplate('tc')" title="ดาวน์โหลด Template"><i class="fa-solid fa-download"></i> Template</button>
   </div>
 </div>
 <div id="import-preview-tc"></div>
@@ -595,6 +599,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
     <div style="margin-left:auto;display:flex;gap:6px">
       <button class="btn btn-exp bsm" onclick="exportExcel('inv')"><i class="fa-solid fa-file-excel"></i> Export สต็อก</button>
       <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'inv')"></label>
+      <button class="btn bgy bsm" onclick="downloadTemplate('inv')" title="ดาวน์โหลด Template"><i class="fa-solid fa-download"></i> Template</button>
     </div>
   </div>
   <div id="import-preview-inv"></div>
