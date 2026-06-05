@@ -253,7 +253,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   <button class="tnb on" data-tab="dash"><i class="fa-solid fa-chart-line"></i> แดชบอร์ด</button>
   <button class="tnb" data-tab="income"><i class="fa-solid fa-arrow-trend-up"></i> รายรับ</button>
   <button class="tnb" data-tab="expense"><i class="fa-solid fa-arrow-trend-down"></i> รายจ่าย</button>
-  <button class="tnb" data-tab="boxes"><i class="fa-solid fa-box-open"></i> กล่อง</button>
+  <button class="tnb" data-tab="boxes"><i class="fa-solid fa-receipt"></i> รายการขาย</button>
   <button class="tnb" data-tab="pay"><i class="fa-solid fa-user-group"></i> ค่าแรง</button>
   <button class="tnb" data-tab="tc"><i class="fa-solid fa-clock"></i> เวลา</button>
   <button class="tnb" data-tab="inv"><i class="fa-solid fa-boxes-stacked"></i> วัตถุดิบ</button>
@@ -372,18 +372,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   </div>
 </div>
 
-<!-- BOXES -->
+<!-- BOXES / รายการขาย -->
 <div class="tab" id="tab-boxes">
   <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="box-mo" onchange="loadBoxes()"></select><span class="minfo" id="box-info"></span></div>
   <div class="card">
-    <div class="ct"><i class="fa-solid fa-pencil"></i> บันทึกจำนวนกล่องที่ขายได้</div>
+    <div class="ct"><i class="fa-solid fa-pencil"></i> บันทึกรายการขาย</div>
     <div id="b-el"></div>
     <div class="fwrap" id="b-fw">
       <div class="fg"><label>วันที่</label><input type="date" id="b-d"></div>
-      <div class="fg"><label>🥩 หมู</label><input type="number" id="b-m" placeholder="0" min="0" inputmode="numeric"></div>
-      <div class="fg"><label>🦐 กุ้ง</label><input type="number" id="b-k" placeholder="0" min="0" inputmode="numeric"></div>
-      <div class="fg"><label>🥩 หมูชิ้น</label><input type="number" id="b-mp" placeholder="0" min="0" inputmode="numeric"></div>
-      <div class="fg"><label>🦐 กุ้งชิ้น</label><input type="number" id="b-kp" placeholder="0" min="0" inputmode="numeric"></div>
+      <div class="fg"><label>🥩 หมู (กล่อง)</label><input type="number" id="b-m" placeholder="0" min="0" inputmode="numeric"></div>
+      <div class="fg"><label>🦐 กุ้ง (กล่อง)</label><input type="number" id="b-k" placeholder="0" min="0" inputmode="numeric"></div>
+      <div class="fg"><label>🥩 หมู (ชิ้น)</label><input type="number" id="b-mp" placeholder="0" min="0" inputmode="numeric"></div>
+      <div class="fg"><label>🦐 กุ้ง (ชิ้น)</label><input type="number" id="b-kp" placeholder="0" min="0" inputmode="numeric"></div>
       <input type="hidden" id="b-id">
       <div class="fg" style="flex:0;flex-direction:row;gap:6px;align-items:flex-end">
         <button class="btn bp" onclick="saveBoxes()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
@@ -394,21 +394,45 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   <div class="kgrid" style="grid-template-columns:repeat(auto-fit,minmax(105px,1fr));margin-bottom:12px">
     <div class="kpi pu"><div class="kl">🥩 หมู</div><div class="kv" id="t-bm">—</div><div class="ks">กล่อง</div></div>
     <div class="kpi bl"><div class="kl">🦐 กุ้ง</div><div class="kv" id="t-bk">—</div><div class="ks">กล่อง</div></div>
-    <div class="kpi or"><div class="kl">🥩 หมูชิ้น</div><div class="kv" id="t-bmp">—</div><div class="ks">กล่อง</div></div>
-    <div class="kpi gn"><div class="kl">🦐 กุ้งชิ้น</div><div class="kv" id="t-bkp">—</div><div class="ks">กล่อง</div></div>
-    <div class="kpi rd"><div class="kl">รวม</div><div class="kv" id="t-btot">—</div><div class="ks">กล่อง</div></div>
+    <div class="kpi or"><div class="kl">🥩 หมูชิ้น</div><div class="kv" id="t-bmp">—</div><div class="ks">ชิ้น</div></div>
+    <div class="kpi gn"><div class="kl">🦐 กุ้งชิ้น</div><div class="kv" id="t-bkp">—</div><div class="ks">ชิ้น</div></div>
+    <div class="kpi rd"><div class="kl">รวม</div><div class="kv" id="t-btot">—</div><div class="ks">รายการ</div></div>
   </div>
   <div class="card">
     <div class="ct"><i class="fa-solid fa-table"></i> ยอดขายรายวัน + เทียบราคา</div>
-    <p style="font-size:11px;color:var(--mu);margin-bottom:10px">ราคาขาย: หมู ฿70 | กุ้ง ฿109 | หมูชิ้น ฿25 | กุ้งชิ้น ฿33</p>
+    <p style="font-size:11px;color:var(--mu);margin-bottom:10px">ราคาขาย: หมู ฿70/กล่อง | กุ้ง ฿109/กล่อง | หมูชิ้น ฿25/ชิ้น | กุ้งชิ้น ฿33/ชิ้น</p>
     <div class="tw"><table>
-      <thead><tr><th>วันที่</th><th class="tc">หมู</th><th class="tc">กุ้ง</th><th class="tc">หมูชิ้น</th><th class="tc">กุ้งชิ้น</th><th class="tr2">คาดหวัง</th><th class="tr2">จริง</th><th class="tr2">ต่าง</th><th>แก้ไข</th></tr></thead>
-      <tbody id="box-tb"><tr><td colspan="9"><div class="loading"><div class="spin"></div>กำลังโหลด...</div></td></tr></tbody>
+      <thead><tr>
+        <th>วันที่</th>
+        <th class="tc">หมู<br><span style="font-weight:400;opacity:.7">(กล่อง)</span></th>
+        <th class="tc">กุ้ง<br><span style="font-weight:400;opacity:.7">(กล่อง)</span></th>
+        <th class="tc">หมูชิ้น<br><span style="font-weight:400;opacity:.7">(ชิ้น)</span></th>
+        <th class="tc">กุ้งชิ้น<br><span style="font-weight:400;opacity:.7">(ชิ้น)</span></th>
+        <th class="tr2">คาดหวัง</th>
+        <th class="tr2">จริง</th>
+        <th class="tr2">ต่าง</th>
+        <th>แก้ไข</th>
+      </tr></thead>
+      <tbody id="box-tb"></tbody>
     </table></div>
     <div class="srow" style="flex-wrap:wrap;gap:10px">
       <span>ยอดคาดหวังรวม</span><span class="sv" id="box-exp-tot" style="color:var(--pu)">฿0</span>
       <span style="color:var(--mu)">ยอดจริงรวม</span><span class="sv" id="box-real-tot" style="color:var(--bl)">฿0</span>
-      <span style="color:var(--mu)">ส่วนต่าง</span><span class="sv" id="box-diff-tot">฿0</span>
+      <span style="color:var(--mu)">ส่วนต่าง</span>
+      <span class="sv" id="box-diff-tot" style="cursor:pointer;text-decoration:underline dotted" onclick="showDiffDetail()" title="คลิกดูรายละเอียด">฿0 <i class="fa-solid fa-magnifying-glass" style="font-size:12px"></i></span>
+    </div>
+  </div>
+  <!-- DIFF DETAIL PANEL -->
+  <div id="diff-panel" style="display:none">
+    <div class="card" style="border-left:3px solid var(--or)">
+      <div class="ct"><i class="fa-solid fa-magnifying-glass"></i> วันที่ยอดต่างจากคาดหวังมากที่สุด
+        <button onclick="$('diff-panel').style.display='none'" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--mu);font-size:16px">✕</button>
+      </div>
+      <p style="font-size:12px;color:var(--mu);margin-bottom:10px">ยอดจริง ≠ ยอดคาดหวัง อาจเกิดจาก: ลดราคา / ขายยกชุด / บันทึกกล่องไม่ครบ</p>
+      <div class="tw"><table>
+        <thead><tr><th>วันที่</th><th class="tr2">คาดหวัง</th><th class="tr2">จริง</th><th class="tr2">ต่าง</th><th>สาเหตุที่เป็นไปได้</th></tr></thead>
+        <tbody id="diff-tb"></tbody>
+      </table></div>
     </div>
   </div>
 </div>
@@ -422,7 +446,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
       <div id="em-el"></div>
       <div class="fwrap" id="em-fw" style="flex-direction:column;gap:10px">
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <div class="fg"><label>ชื่อพนักงาน</label><input type="text" id="em-n" placeholder="ชื่อ"></div>
+          <div class="fg">
+            <label>ชื่อพนักงาน</label>
+            <select id="em-n-sel" onchange="$('em-n').value=this.value" style="margin-bottom:4px">
+              <option value="">-- เลือกพนักงาน --</option>
+            </select>
+            <input type="text" id="em-n" placeholder="หรือพิมพ์ชื่อ" style="font-size:12px">
+          </div>
           <div class="fg" style="max-width:140px"><label>เดือน</label><input type="month" id="em-mo"></div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -615,7 +645,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   <button class="bnb on" data-tab="dash"><i class="fa-solid fa-chart-line"></i><span>แดชบอร์ด</span></button>
   <button class="bnb" data-tab="income"><i class="fa-solid fa-arrow-trend-up"></i><span>รายรับ</span></button>
   <button class="bnb" data-tab="expense"><i class="fa-solid fa-arrow-trend-down"></i><span>รายจ่าย</span></button>
-  <button class="bnb" data-tab="boxes"><i class="fa-solid fa-box-open"></i><span>กล่อง</span></button>
+  <button class="bnb" data-tab="boxes"><i class="fa-solid fa-receipt"></i><span>ขาย</span></button>
   <button class="bnb" data-tab="pay"><i class="fa-solid fa-user-group"></i><span>ค่าแรง</span></button>
   <button class="bnb" data-tab="tc"><i class="fa-solid fa-clock"></i><span>เวลา</span></button>
   <button class="bnb" data-tab="inv"><i class="fa-solid fa-boxes-stacked"></i><span>วัตถุดิบ</span></button>
@@ -772,7 +802,7 @@ function switchTab(id){
   document.querySelectorAll('.tnb,.bnb').forEach(b=>{b.classList.toggle('on',b.dataset.tab===id);});
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   $('tab-'+id).classList.add('on');
-  const lo={dash:loadDash,income:loadIncome,expense:loadExpense,boxes:loadBoxes,prod:loadProd,pay:()=>{loadPay();loadEmpList();loadTcSel();},tc:()=>{loadTimes();loadTcSel();},inv:()=>{loadInv();loadInvLog();}};
+  const lo={dash:loadDash,income:loadIncome,expense:loadExpense,boxes:loadBoxes,prod:loadProd,pay:()=>{loadPay();loadEmpList();loadTcSel();loadEmpDropdown();},tc:()=>{loadTimes();loadTcSel();},inv:()=>{loadInv();loadInvLog();}};
   if(lo[id])lo[id]();
 }
 function goTab(id){switchTab(id);}
@@ -818,8 +848,10 @@ async function saveExpense(){
 function editExp(id,date,item,cat,qty,price,slip){$('e-id').value=id;$('e-d').value=date;$('e-i').value=item;$('e-cat').value=cat;$('e-q').value=qty;$('e-p').value=price;$('e-su').value=slip;if(slip)$('e-sl').innerHTML=`<img src="${slip}" class="slip-prev" onclick="viewSlip('${slip}')">`;setEl('e',`${date} ${item}`);$('e-cancel').style.display='';$('e-i').focus();}
 
 // ===== BOXES =====
+let _boxRows = []; // cache for diff detail
 async function loadBoxes(){
   const rows=await db('sales','GET',null,`?order=date.desc${getF($('box-mo').value)}&select=id,date,transfer,cash,boxes_moo,boxes_kung,boxes_moo_piece,boxes_kung_piece`);
+  _boxRows=rows;
   let tm=0,tk=0,tmp=0,tkp=0,totExp=0,totReal=0;
   $('box-tb').innerHTML=rows.length?rows.map(r=>{
     const bm=+r.boxes_moo||0,bk=+r.boxes_kung||0,bmp=+r.boxes_moo_piece||0,bkp=+r.boxes_kung_piece||0;
@@ -827,12 +859,55 @@ async function loadBoxes(){
     const real=+r.transfer+ +r.cash;
     const diff=real-expected;
     tm+=bm;tk+=bk;tmp+=bmp;tkp+=bkp;totExp+=expected;totReal+=real;
-    return `<tr><td>${r.date}</td><td class="tc"><strong style="color:var(--pu)">${bm}</strong></td><td class="tc"><strong style="color:var(--bl)">${bk}</strong></td><td class="tc">${bmp}</td><td class="tc">${bkp}</td><td class="tr2" style="color:var(--pu)">${fmt(expected)}</td><td class="tr2">${fmt(real)}</td><td class="tr2 ${diff>=0?'diff-pos':'diff-neg'}">${diff>=0?'+':''}${fmt(diff)}</td>${eb(`editBox('${r.id}','${r.date}',${bm},${bk},${bmp},${bkp})`,`delRow('sales','${r.id}',loadBoxes,loadDash)`)}</tr>`;
+    const diffCls=diff>=0?'diff-pos':'diff-neg';
+    return `<tr>
+      <td>${r.date}</td>
+      <td class="tc"><strong style="color:var(--pu)">${bm}</strong></td>
+      <td class="tc"><strong style="color:var(--bl)">${bk}</strong></td>
+      <td class="tc">${bmp}</td><td class="tc">${bkp}</td>
+      <td class="tr2" style="color:var(--pu)">${fmt(expected)}</td>
+      <td class="tr2">${fmt(real)}</td>
+      <td class="tr2 ${diffCls}" style="cursor:pointer" onclick="showDiffDetail('${r.date}')" title="คลิกดูรายละเอียด">${diff>=0?'+':''}${fmt(diff)}</td>
+      ${eb(`editBox('${r.id}','${r.date}',${bm},${bk},${bmp},${bkp})`,`delRow('sales','${r.id}',loadBoxes,loadDash)`)}
+    </tr>`;
   }).join(''):`<tr><td colspan="9" class="empty">ไม่มีข้อมูล</td></tr>`;
-  $('t-bm').textContent=fmtN(tm);$('t-bk').textContent=fmtN(tk);$('t-bmp').textContent=fmtN(tmp);$('t-bkp').textContent=fmtN(tkp);$('t-btot').textContent=fmtN(tm+tk+tmp+tkp);
+  $('t-bm').textContent=fmtN(tm);$('t-bk').textContent=fmtN(tk);
+  $('t-bmp').textContent=fmtN(tmp);$('t-bkp').textContent=fmtN(tkp);
+  $('t-btot').textContent=fmtN(tm+tk+tmp+tkp);
   $('box-exp-tot').textContent=fmt(totExp);$('box-real-tot').textContent=fmt(totReal);
-  const d2=totReal-totExp;$('box-diff-tot').textContent=(d2>=0?'+':'')+fmt(d2);$('box-diff-tot').className='sv '+(d2>=0?'diff-pos':'diff-neg');
-  $('box-info').textContent=`${rows.length} วัน | ${fmtN(tm+tk+tmp+tkp)} กล่อง`;
+  const d2=totReal-totExp;
+  $('box-diff-tot').innerHTML=(d2>=0?'+':'')+fmt(d2)+' <i class="fa-solid fa-magnifying-glass" style="font-size:11px"></i>';
+  $('box-diff-tot').className='sv '+(d2>=0?'diff-pos':'diff-neg');
+  $('box-info').textContent=`${rows.length} วัน | ${fmtN(tm+tk+tmp+tkp)} รายการ`;
+  $('diff-panel').style.display='none';
+}
+function showDiffDetail(focusDate=null){
+  const panel=$('diff-panel');
+  panel.style.display='block';
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+  // เรียงตามส่วนต่างสูงสุด
+  const rows=[..._boxRows].map(r=>{
+    const bm=+r.boxes_moo||0,bk=+r.boxes_kung||0,bmp=+r.boxes_moo_piece||0,bkp=+r.boxes_kung_piece||0;
+    const exp=bm*PRICE.moo+bk*PRICE.kung+bmp*PRICE.moo_piece+bkp*PRICE.kung_piece;
+    const real=+r.transfer+ +r.cash;
+    return {...r,exp,real,diff:real-exp};
+  }).filter(r=>Math.abs(r.diff)>0).sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff));
+  if(!rows.length){$('diff-tb').innerHTML='<tr><td colspan="5" class="empty">ไม่มีส่วนต่าง</td></tr>';return;}
+  $('diff-tb').innerHTML=rows.map(r=>{
+    const pct=r.exp>0?Math.round(Math.abs(r.diff)/r.exp*100):0;
+    const reasons=[];
+    if(r.diff<0) reasons.push('ลดราคา / ขายผิดราคา');
+    if(r.diff>0) reasons.push('ขายเพิ่ม / บันทึกกล่องต่ำเกิน');
+    if(pct>20) reasons.push(`ต่างมากกว่า ${pct}% — ควรตรวจสอบ`);
+    const hl=focusDate&&r.date===focusDate?'background:#FFF9C4':'';
+    return `<tr style="${hl}">
+      <td><strong>${r.date}</strong>${focusDate===r.date?'<span class="badge bor2" style="margin-left:6px">วันนี้</span>':''}</td>
+      <td class="tr2" style="color:var(--pu)">${fmt(r.exp)}</td>
+      <td class="tr2">${fmt(r.real)}</td>
+      <td class="tr2 ${r.diff>=0?'diff-pos':'diff-neg'}" style="font-weight:600">${r.diff>=0?'+':''}${fmt(r.diff)}</td>
+      <td style="font-size:11px;color:var(--mu)">${reasons.join(' | ')||'—'}</td>
+    </tr>`;
+  }).join('');
 }
 async function saveBoxes(){
   const d=$('b-d').value,m=+$('b-m').value||0,k=+$('b-k').value||0,mp=+$('b-mp').value||0,kp=+$('b-kp').value||0,id=$('b-id').value;
@@ -880,6 +955,14 @@ function editProd(id,date,mb,mp,kb,kp,note){
 }
 
 // ===== PAYROLL =====
+async function loadEmpDropdown(){
+  const rows=await db('employee_profiles','GET',null,'?order=name.asc&select=name');
+  const sel=$('em-n-sel');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- เลือกพนักงาน --</option>'+rows.map(r=>`<option value="${r.name}" ${r.name===cur?'selected':''}>${r.name}</option>`).join('');
+  // sync to text input
+  if(cur)$('em-n').value=cur;
+}
 async function loadPay(){
   const mo=$('pay-mo').value,f=mo==='all'?'':(`&month=eq.${mo}`);
   const rows=await db('employees','GET',null,`?order=month.desc,name.asc${f}`);
@@ -1013,18 +1096,33 @@ async function loadDash(){
   $('k-bm').textContent=fmtN(bm);$('k-bk').textContent=fmtN(bk);$('k-bmp').textContent=fmtN(bmp);$('k-bkp').textContent=fmtN(bkp);$('k-btot').textContent=fmtN(bm+bk+bmp+bkp);
   $('dash-info').textContent=`${mo==='all'?'ทั้งหมด':ceToThai(mo)} | ${fmt(mRev)} | กำไร ${fmt(mPro)}`;
 
-  const dM={},eM={};
-  allS.forEach(r=>{const d=r.date.split('-')[2];dM[d]=(dM[d]||0)+ +r.transfer+ +r.cash;});
-  allE.forEach(r=>{const d=r.date.split('-')[2];eM[d]=(eM[d]||0)+ +r.qty* +r.price;});
-  const days=[...new Set([...Object.keys(dM),...Object.keys(eM)])].sort();
-  if(CH.main)CH.main.destroy();
-  CH.main=new Chart($('cMain'),{type:'bar',data:{labels:days,datasets:[{label:'รายรับ',data:days.map(d=>dM[d]||0),backgroundColor:'#1A527688',borderRadius:3},{label:'รายจ่าย',data:days.map(d=>eM[d]||0),backgroundColor:'#C0392B66',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:0},grid:{display:false}},y:{ticks:{font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v},grid:{color:'rgba(0,0,0,.04)'}}}}});
-
-  const bmA=days.map(d=>{const r=allS.find(s=>s.date.split('-')[2]===d);return r?+r.boxes_moo:0;});
-  const bkA=days.map(d=>{const r=allS.find(s=>s.date.split('-')[2]===d);return r?+r.boxes_kung:0;});
-  const bmpA=days.map(d=>{const r=allS.find(s=>s.date.split('-')[2]===d);return r?+r.boxes_moo_piece:0;});
-  if(CH.box)CH.box.destroy();
-  CH.box=new Chart($('cBox'),{type:'bar',data:{labels:days,datasets:[{label:'หมู',data:bmA,backgroundColor:'#6C348399',borderRadius:2},{label:'กุ้ง',data:bkA,backgroundColor:'#1A527677',borderRadius:2},{label:'หมูชิ้น',data:bmpA,backgroundColor:'#E67E2266',borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:9},boxWidth:8}}},scales:{x:{stacked:true,ticks:{font:{size:9},maxRotation:0},grid:{display:false}},y:{stacked:true,ticks:{font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}});
+  // กราฟ — รายเดือนถ้าเลือก "ทั้งหมด", รายวันถ้าเลือกเดือนเดียว
+  const isAll = mo==='all';
+  if(isAll){
+    // รวมรายเดือน
+    const mRevMap={},mExpMap={},mBmMap={},mBkMap={},mBmpMap={};
+    allS.forEach(r=>{const m=r.date.substring(0,7);mRevMap[m]=(mRevMap[m]||0)+ +r.transfer+ +r.cash;mBmMap[m]=(mBmMap[m]||0)+ +r.boxes_moo;mBkMap[m]=(mBkMap[m]||0)+ +r.boxes_kung;mBmpMap[m]=(mBmpMap[m]||0)+ +r.boxes_moo_piece;});
+    allE.forEach(r=>{const m=r.date.substring(0,7);mExpMap[m]=(mExpMap[m]||0)+ +r.qty* +r.price;});
+    const months=[...new Set([...Object.keys(mRevMap),...Object.keys(mExpMap)])].sort();
+    const mLabels=months.map(m=>ceToThai(m));
+    if(CH.main)CH.main.destroy();
+    CH.main=new Chart($('cMain'),{type:'bar',data:{labels:mLabels,datasets:[{label:'รายรับ',data:months.map(m=>mRevMap[m]||0),backgroundColor:'#1A527688',borderRadius:4},{label:'รายจ่าย',data:months.map(m=>mExpMap[m]||0),backgroundColor:'#C0392B66',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9}},grid:{display:false}},y:{ticks:{font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v},grid:{color:'rgba(0,0,0,.04)'}}}}});
+    if(CH.box)CH.box.destroy();
+    CH.box=new Chart($('cBox'),{type:'bar',data:{labels:mLabels,datasets:[{label:'หมู',data:months.map(m=>mBmMap[m]||0),backgroundColor:'#6C348399',borderRadius:2},{label:'กุ้ง',data:months.map(m=>mBkMap[m]||0),backgroundColor:'#1A527677',borderRadius:2},{label:'หมูชิ้น',data:months.map(m=>mBmpMap[m]||0),backgroundColor:'#E67E2266',borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:9},boxWidth:8}}},scales:{x:{stacked:true,ticks:{font:{size:9}},grid:{display:false}},y:{stacked:true,ticks:{font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}});
+  } else {
+    // รายวัน
+    const dM={},eM={};
+    allS.forEach(r=>{const d=r.date.split('-')[2];dM[d]=(dM[d]||0)+ +r.transfer+ +r.cash;});
+    allE.forEach(r=>{const d=r.date.split('-')[2];eM[d]=(eM[d]||0)+ +r.qty* +r.price;});
+    const days=[...new Set([...Object.keys(dM),...Object.keys(eM)])].sort();
+    if(CH.main)CH.main.destroy();
+    CH.main=new Chart($('cMain'),{type:'bar',data:{labels:days,datasets:[{label:'รายรับ',data:days.map(d=>dM[d]||0),backgroundColor:'#1A527688',borderRadius:3},{label:'รายจ่าย',data:days.map(d=>eM[d]||0),backgroundColor:'#C0392B66',borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},maxRotation:0},grid:{display:false}},y:{ticks:{font:{size:9},callback:v=>v>=1000?(v/1000).toFixed(0)+'k':v},grid:{color:'rgba(0,0,0,.04)'}}}}});
+    const bmA=days.map(d=>{const r=allS.find(s=>s.date.split('-')[2]===d);return r?+r.boxes_moo:0;});
+    const bkA=days.map(d=>{const r=allS.find(s=>s.date.split('-')[2]===d);return r?+r.boxes_kung:0;});
+    const bmpA=days.map(d=>{const r=allS.find(s=>s.date.split('-')[2]===d);return r?+r.boxes_moo_piece:0;});
+    if(CH.box)CH.box.destroy();
+    CH.box=new Chart($('cBox'),{type:'bar',data:{labels:days,datasets:[{label:'หมู',data:bmA,backgroundColor:'#6C348399',borderRadius:2},{label:'กุ้ง',data:bkA,backgroundColor:'#1A527677',borderRadius:2},{label:'หมูชิ้น',data:bmpA,backgroundColor:'#E67E2266',borderRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{font:{size:9},boxWidth:8}}},scales:{x:{stacked:true,ticks:{font:{size:9},maxRotation:0},grid:{display:false}},y:{stacked:true,ticks:{font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}});
+  }
 
   const cats={raw:0,pkg:0,wage:0,daily:0,other:0};
   allE.forEach(r=>{const k=r.category in cats?r.category:'other';cats[k]+= +r.qty* +r.price;});
