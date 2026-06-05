@@ -15,6 +15,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -209,6 +210,20 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 #install-banner.show{display:flex}
 @media(min-width:600px){#install-banner{left:auto;right:20px;bottom:20px;width:320px}}
 
+/* IMPORT / EXPORT */
+.ie-bar{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.btn-exp{background:#1E8449;color:#fff;border-color:#1E8449}
+.btn-exp:hover{background:#186035}
+.btn-imp{background:#1A5276;color:#fff;border-color:#1A5276}
+.btn-imp:hover{background:#154360}
+.btn-imp input[type=file]{display:none}
+.import-preview{background:#FFFBF0;border:1.5px solid var(--or);border-radius:var(--rs);padding:12px;margin-bottom:12px}
+.import-preview .ip-title{font-size:13px;font-weight:600;color:var(--or);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.import-preview table{min-width:0}
+.import-preview thead{background:#FEF3CD}
+.import-preview th{color:#7D5A00;font-size:10px}
+.import-preview td{font-size:12px;padding:5px 8px}
+
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-thumb{background:#D5D8DC;border-radius:3px}
 </style>
@@ -313,7 +328,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 
 <!-- INCOME -->
 <div class="tab" id="tab-income">
-  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="inc-mo" onchange="loadIncome()"></select><span class="minfo" id="inc-info"></span></div>
+  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="inc-mo" onchange="loadIncome()"></select><span class="minfo" id="inc-info"></span>
+  <div style="margin-left:auto;display:flex;gap:6px">
+    <button class="btn btn-exp bsm" onclick="exportExcel('income')"><i class="fa-solid fa-file-excel"></i> Export</button>
+    <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'income')"></label>
+    <button class="btn bgy bsm" onclick="downloadTemplate('income')" title="ดาวน์โหลด Template"><i class="fa-solid fa-download"></i></button>
+  </div>
+</div>
+<div id="import-preview-income"></div>
   <div class="card">
     <div class="ct"><i class="fa-solid fa-circle-plus"></i> บันทึกรายรับ</div>
     <div id="s-el"></div>
@@ -342,7 +364,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 
 <!-- EXPENSE -->
 <div class="tab" id="tab-expense">
-  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="exp-mo" onchange="loadExpense()"></select><span class="minfo" id="exp-info"></span></div>
+  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="exp-mo" onchange="loadExpense()"></select><span class="minfo" id="exp-info"></span>
+  <div style="margin-left:auto;display:flex;gap:6px">
+    <button class="btn btn-exp bsm" onclick="exportExcel('expense')"><i class="fa-solid fa-file-excel"></i> Export</button>
+    <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'expense')"></label>
+  </div>
+</div>
+<div id="import-preview-expense"></div>
   <div class="card">
     <div class="ct"><i class="fa-solid fa-receipt"></i> บันทึกรายจ่าย</div>
     <div id="e-el"></div>
@@ -374,7 +402,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 
 <!-- BOXES / รายการขาย -->
 <div class="tab" id="tab-boxes">
-  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="box-mo" onchange="loadBoxes()"></select><span class="minfo" id="box-info"></span></div>
+  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="box-mo" onchange="loadBoxes()"></select><span class="minfo" id="box-info"></span>
+  <div style="margin-left:auto;display:flex;gap:6px">
+    <button class="btn btn-exp bsm" onclick="exportExcel('boxes')"><i class="fa-solid fa-file-excel"></i> Export</button>
+    <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'boxes')"></label>
+  </div>
+</div>
+<div id="import-preview-boxes"></div>
   <div class="card">
     <div class="ct"><i class="fa-solid fa-pencil"></i> บันทึกรายการขาย</div>
     <div id="b-el"></div>
@@ -439,7 +473,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 
 <!-- PAYROLL -->
 <div class="tab" id="tab-pay">
-  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="pay-mo" onchange="loadPay()"></select><span class="minfo" id="pay-info"></span></div>
+  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="pay-mo" onchange="loadPay()"></select><span class="minfo" id="pay-info"></span>
+  <div style="margin-left:auto;display:flex;gap:6px">
+    <button class="btn btn-exp bsm" onclick="exportExcel('pay')"><i class="fa-solid fa-file-excel"></i> Export</button>
+    <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'pay')"></label>
+  </div>
+</div>
+<div id="import-preview-pay"></div>
   <div class="g2">
     <div class="card">
       <div class="ct"><i class="fa-solid fa-user-plus"></i> บันทึกค่าแรง</div>
@@ -486,7 +526,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 
 <!-- TIMECLOCK -->
 <div class="tab" id="tab-tc">
-  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="tc-mo" onchange="loadTimes()"></select></div>
+  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="tc-mo" onchange="loadTimes()"></select>
+  <div style="margin-left:auto;display:flex;gap:6px">
+    <button class="btn btn-exp bsm" onclick="exportExcel('tc')"><i class="fa-solid fa-file-excel"></i> Export</button>
+    <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'tc')"></label>
+  </div>
+</div>
+<div id="import-preview-tc"></div>
   <div class="card">
     <div class="ct"><i class="fa-solid fa-fingerprint"></i> บันทึกเวลาเข้า-ออก</div>
     <div id="tc-el"></div>
@@ -545,7 +591,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
       </div>
     </div>
   </div>
-  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="inv-mo" onchange="loadInvLog()"></select><span class="minfo" id="inv-info"></span></div>
+  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="inv-mo" onchange="loadInvLog()"></select><span class="minfo" id="inv-info"></span>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="btn btn-exp bsm" onclick="exportExcel('inv')"><i class="fa-solid fa-file-excel"></i> Export สต็อก</button>
+      <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'inv')"></label>
+    </div>
+  </div>
+  <div id="import-preview-inv"></div>
   <div class="g2">
     <div class="card">
       <div class="ct"><i class="fa-solid fa-warehouse"></i> สต็อกปัจจุบัน</div>
@@ -580,7 +632,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 
 <!-- PRODUCTION -->
 <div class="tab" id="tab-prod">
-  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="prod-mo" onchange="loadProd()"></select></div>
+  <div class="mbar"><label><i class="fa-solid fa-calendar-days"></i> เดือน</label><select id="prod-mo" onchange="loadProd()"></select>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="btn btn-exp bsm" onclick="exportExcel('prod')"><i class="fa-solid fa-file-excel"></i> Export</button>
+      <label class="btn btn-imp bsm" style="cursor:pointer"><i class="fa-solid fa-file-import"></i> Import<input type="file" accept=".xlsx,.xls,.csv" onchange="importExcel(event,'prod')"></label>
+    </div>
+  </div>
+  <div id="import-preview-prod"></div>
   <div class="card">
     <div class="ct"><i class="fa-solid fa-circle-plus"></i> บันทึกการผลิต</div>
     <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
@@ -1134,7 +1192,204 @@ async function loadDash(){
   renderInvAlert(invR);
 }
 
-// ===== INIT =====
+// ===== IMPORT / EXPORT EXCEL =====
+
+// CONFIG สำหรับแต่ละแท็บ
+const XL_CFG = {
+  income: {
+    label:'รายรับ',
+    headers:['วันที่','เงินโอน','เงินสด','หมายเหตุ'],
+    keys:['date','transfer','cash','note'],
+    load: ()=>db('sales','GET',null,'?order=date.asc&select=date,transfer,cash,note'),
+    rowMap: r=>({วันที่:r.date,เงินโอน:+r.transfer,เงินสด:+r.cash,หมายเหตุ:r.note||''}),
+    importRow: r=>r.วันที่?{date:String(r.วันที่),transfer:+r.เงินโอน||0,cash:+r.เงินสด||0,note:r.หมายเหตุ||'',boxes_moo:0,boxes_kung:0,boxes_moo_piece:0,boxes_kung_piece:0}:null,
+    table:'sales', reload:()=>{loadIncome();loadDash();}
+  },
+  expense:{
+    label:'รายจ่าย',
+    headers:['วันที่','รายการ','หมวด','จำนวน','ราคา/หน่วย'],
+    keys:['date','item','category','qty','price'],
+    load: ()=>db('expenses','GET',null,'?order=date.asc&select=date,item,category,qty,price'),
+    rowMap: r=>({วันที่:r.date,รายการ:r.item,หมวด:r.category,จำนวน:+r.qty,ราคา_หน่วย:+r.price}),
+    importRow: r=>r.วันที่&&r.รายการ?{date:String(r.วันที่),item:String(r.รายการ),category:String(r.หมวด||'other'),qty:+r.จำนวน||1,price:+r['ราคา/หน่วย']||+r.ราคา_หน่วย||0}:null,
+    table:'expenses', reload:()=>{loadExpense();loadDash();}
+  },
+  boxes:{
+    label:'รายการขาย',
+    headers:['วันที่','หมู(กล่อง)','กุ้ง(กล่อง)','หมูชิ้น','กุ้งชิ้น'],
+    keys:['date','boxes_moo','boxes_kung','boxes_moo_piece','boxes_kung_piece'],
+    load: ()=>db('sales','GET',null,'?order=date.asc&select=date,boxes_moo,boxes_kung,boxes_moo_piece,boxes_kung_piece'),
+    rowMap: r=>({วันที่:r.date,'หมู(กล่อง)':+r.boxes_moo||0,'กุ้ง(กล่อง)':+r.boxes_kung||0,หมูชิ้น:+r.boxes_moo_piece||0,กุ้งชิ้น:+r.boxes_kung_piece||0}),
+    importRow: r=>r.วันที่?{date:String(r.วันที่),boxes_moo:+r['หมู(กล่อง)']||0,boxes_kung:+r['กุ้ง(กล่อง)']||0,boxes_moo_piece:+r.หมูชิ้น||0,boxes_kung_piece:+r.กุ้งชิ้น||0}:null,
+    table:'sales', reload:()=>{loadBoxes();loadDash();},
+    upsert: true // patch ถ้า date มีอยู่แล้ว
+  },
+  pay:{
+    label:'ค่าแรง',
+    headers:['ชื่อ','เดือน','ค่าแรง/วัน','วันทำงาน','โอที(ชม.)','โอที/ชม.','เบิกล่วงหน้า'],
+    keys:['name','month','rate','days','ot_hours','ot_rate','advance'],
+    load: ()=>db('employees','GET',null,'?order=month.desc,name.asc'),
+    rowMap: r=>({ชื่อ:r.name,เดือน:r.month||'','ค่าแรง/วัน':+r.rate,'วันทำงาน':+r.days,'โอที(ชม.)':+r.ot_hours,'โอที/ชม.':+r.ot_rate,'เบิกล่วงหน้า':+r.advance}),
+    importRow: r=>r.ชื่อ?{name:String(r.ชื่อ),month:String(r.เดือน||thisMonthCE()),rate:+r['ค่าแรง/วัน']||400,days:+r.วันทำงาน||0,ot_hours:+r['โอที(ชม.)']||0,ot_rate:+r['โอที/ชม.']||50,advance:+r.เบิกล่วงหน้า||0}:null,
+    table:'employees', reload:loadPay
+  },
+  tc:{
+    label:'เวลาทำงาน',
+    headers:['วันที่','พนักงาน','เวลาเข้า','เวลาออก','ชั่วโมง','สถานะ'],
+    keys:['date','employee_name','time_in','time_out','hours','status'],
+    load: ()=>db('time_records','GET',null,'?order=date.asc&select=date,employee_name,time_in,time_out,hours,status'),
+    rowMap: r=>({วันที่:r.date,พนักงาน:r.employee_name,เวลาเข้า:r.time_in||'',เวลาออก:r.time_out||'',ชั่วโมง:+r.hours,สถานะ:r.status}),
+    importRow: r=>r.วันที่&&r.พนักงาน?{date:String(r.วันที่),employee_name:String(r.พนักงาน),time_in:r.เวลาเข้า||null,time_out:r.เวลาออก||null,hours:+r.ชั่วโมง||0,status:String(r.สถานะ||'normal')}:null,
+    table:'time_records', reload:loadTimes
+  },
+  inv:{
+    label:'วัตถุดิบ',
+    headers:['รายการ','สต็อก','หน่วย','ราคา/หน่วย','แจ้งเตือนต่ำกว่า'],
+    keys:['name','qty','unit','price','min_qty'],
+    load: ()=>db('inventory','GET',null,'?order=name.asc'),
+    rowMap: r=>({รายการ:r.name,สต็อก:+r.qty,หน่วย:r.unit,'ราคา/หน่วย':+r.price,แจ้งเตือนต่ำกว่า:+r.min_qty}),
+    importRow: r=>r.รายการ?{name:String(r.รายการ),qty:+r.สต็อก||0,unit:String(r.หน่วย||'หน่วย'),price:+r['ราคา/หน่วย']||0,min_qty:+r.แจ้งเตือนต่ำกว่า||5}:null,
+    table:'inventory', reload:loadInv, upsert:true
+  },
+  prod:{
+    label:'การผลิต',
+    headers:['วันที่','หมู(กล่อง)','หมู(ชิ้น)','กุ้ง(กล่อง)','กุ้ง(ชิ้น)','หมายเหตุ'],
+    keys:['date','moo_box','moo_piece','kung_box','kung_piece','note'],
+    load: ()=>db('production','GET',null,'?order=date.asc'),
+    rowMap: r=>({วันที่:r.date,'หมู(กล่อง)':+r.moo_box||0,'หมู(ชิ้น)':+r.moo_piece||0,'กุ้ง(กล่อง)':+r.kung_box||0,'กุ้ง(ชิ้น)':+r.kung_piece||0,หมายเหตุ:r.note||''}),
+    importRow: r=>r.วันที่?{date:String(r.วันที่),moo_box:+r['หมู(กล่อง)']||0,moo_piece:+r['หมู(ชิ้น)']||0,kung_box:+r['กุ้ง(กล่อง)']||0,kung_piece:+r['กุ้ง(ชิ้น)']||0,note:r.หมายเหตุ||''}:null,
+    table:'production', reload:loadProd, upsert:true
+  }
+};
+
+// ===== EXPORT =====
+async function exportExcel(tabId){
+  const cfg=XL_CFG[tabId];if(!cfg)return;
+  toast(`กำลัง export ${cfg.label}...`);
+  try{
+    const rows=await cfg.load();
+    const data=rows.map(cfg.rowMap);
+    const ws=XLSX.utils.json_to_sheet(data,{header:cfg.headers});
+    // style header row width
+    const colWidths=cfg.headers.map(h=>({wch:Math.max(h.length*2,12)}));
+    ws['!cols']=colWidths;
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,cfg.label);
+    const now=new Date();
+    const dateStr=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+    XLSX.writeFile(wb,`หมูคำหยก_${cfg.label}_${dateStr}.xlsx`);
+    toast(`Export ${cfg.label} สำเร็จ (${rows.length} แถว)`);
+  }catch(e){toast('Export ล้มเหลว: '+e.message,false);}
+}
+
+// ===== IMPORT =====
+async function importExcel(event, tabId){
+  const cfg=XL_CFG[tabId];if(!cfg)return;
+  const file=event.target.files[0];if(!file)return;
+  event.target.value=''; // reset file input
+
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true,dateNF:'yyyy-mm-dd'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const raw=XLSX.utils.sheet_to_json(ws,{defval:''});
+      if(!raw.length)return toast('ไฟล์ว่างเปล่า',false);
+
+      // แปลงข้อมูล
+      const rows=raw.map(cfg.importRow).filter(Boolean);
+      if(!rows.length)return toast('ไม่พบข้อมูลที่ถูกต้อง — ตรวจสอบหัวคอลัมน์',false);
+
+      // Preview
+      showImportPreview(tabId,cfg,rows);
+    }catch(e){toast('อ่านไฟล์ไม่ได้: '+e.message,false);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showImportPreview(tabId,cfg,rows){
+  const div=$(`import-preview-${tabId}`);if(!div)return;
+  const previewRows=rows.slice(0,5);
+  div.innerHTML=`
+    <div class="import-preview">
+      <div class="ip-title"><i class="fa-solid fa-eye"></i> Preview — พบ ${rows.length} แถว (แสดง ${previewRows.length} แถวแรก)</div>
+      <div class="tw" style="margin-bottom:10px"><table>
+        <thead><tr>${cfg.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${previewRows.map(r=>`<tr>${cfg.keys.map(k=>`<td>${r[k]??''}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-exp" onclick="confirmImport('${tabId}',${rows.length})">
+          <i class="fa-solid fa-cloud-upload-alt"></i> ยืนยัน Import ${rows.length} แถว
+        </button>
+        <button class="btn bgy" onclick="$('import-preview-${tabId}').innerHTML=''">
+          <i class="fa-solid fa-xmark"></i> ยกเลิก
+        </button>
+      </div>
+    </div>`;
+  // เก็บ data ใว้ใน attribute
+  div.dataset.pending=JSON.stringify(rows);
+  div.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function confirmImport(tabId, count){
+  const cfg=XL_CFG[tabId];
+  const div=$(`import-preview-${tabId}`);if(!div)return;
+  const rows=JSON.parse(div.dataset.pending||'[]');
+  if(!rows.length)return;
+
+  toast(`กำลัง import ${count} แถว...`);
+  div.innerHTML=`<div class="import-preview"><div class="ip-title"><div class="spin"></div> กำลัง import ${count} แถว...</div></div>`;
+
+  try{
+    let ok=0,err=0;
+    if(cfg.upsert && (tabId==='boxes'||tabId==='prod')){
+      // upsert ทีละแถว: ตรวจสอบ date ก่อน
+      for(const row of rows){
+        try{
+          const existing=await db(cfg.table,'GET',null,`?date=eq.${row.date}&select=id`);
+          if(existing.length) await db(cfg.table,'PATCH',row,`?id=eq.${existing[0].id}`);
+          else await db(cfg.table,'POST',row);
+          ok++;
+        }catch{err++;}
+      }
+    } else if(cfg.upsert && tabId==='inv'){
+      for(const row of rows){
+        try{
+          const existing=await db(cfg.table,'GET',null,`?name=eq.${encodeURIComponent(row.name)}&select=id`);
+          if(existing.length) await db(cfg.table,'PATCH',row,`?id=eq.${existing[0].id}`);
+          else await db(cfg.table,'POST',row);
+          ok++;
+        }catch{err++;}
+      }
+    } else {
+      // insert ทั้งหมดพร้อมกัน (bulk)
+      const CHUNK=50;
+      for(let i=0;i<rows.length;i+=CHUNK){
+        try{
+          await db(cfg.table,'POST',rows.slice(i,i+CHUNK));
+          ok+=Math.min(CHUNK,rows.length-i);
+        }catch{err+=Math.min(CHUNK,rows.length-i);}
+      }
+    }
+    div.innerHTML='';
+    cfg.reload&&cfg.reload();
+    toast(`Import สำเร็จ ${ok} แถว${err?` (ผิดพลาด ${err})`:''}`);
+  }catch(e){
+    div.innerHTML='';
+    toast('Import ล้มเหลว: '+e.message,false);
+  }
+}
+
+// Template download
+function downloadTemplate(tabId){
+  const cfg=XL_CFG[tabId];if(!cfg)return;
+  const ws=XLSX.utils.aoa_to_sheet([cfg.headers]);
+  ws['!cols']=cfg.headers.map(h=>({wch:Math.max(h.length*2,14)}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,cfg.label);
+  XLSX.writeFile(wb,`Template_${cfg.label}.xlsx`);
+  toast(`ดาวน์โหลด Template ${cfg.label} แล้ว`);
+}
 function initApp(){
   const n=new Date();$('dbd').textContent=`${n.toLocaleDateString('th-TH',{day:'numeric',month:'short'})} ${n.getFullYear()+543}`;
   const u=sessionStorage.getItem('mk_user')||'';
