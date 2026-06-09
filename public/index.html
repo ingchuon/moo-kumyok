@@ -869,6 +869,18 @@ function switchTab(id){
   if(lo[id])lo[id]();
 }
 function goTab(id){switchTab(id);}
+
+// ไปแท็บรายการขายแล้วแสดง diff panel ทันที
+async function goDiff(){
+  // sync month filter ให้ตรงกับ dashboard
+  const dashMo=$('dash-mo').value;
+  if($('box-mo'))$('box-mo').value=dashMo;
+  // switch ไปแท็บ boxes แล้วรอโหลดเสร็จ
+  switchTab('boxes');
+  // รอให้ loadBoxes เสร็จก่อน (boxes ใช้ _boxRows จาก dashboard อยู่แล้ว)
+  await new Promise(r=>setTimeout(r,600));
+  showDiffDetail();
+}
 document.querySelectorAll('.tnb,.bnb').forEach(b=>b.addEventListener('click',function(){switchTab(this.dataset.tab);}));
 
 // ===== SLIP =====
@@ -1152,10 +1164,26 @@ async function loadDash(){
   const bm=allS.reduce((a,r)=>a+ +r.boxes_moo,0),bk=allS.reduce((a,r)=>a+ +r.boxes_kung,0),bmp=allS.reduce((a,r)=>a+ +r.boxes_moo_piece,0),bkp=allS.reduce((a,r)=>a+ +r.boxes_kung_piece,0);
   const expected=bm*PRICE.moo+bk*PRICE.kung+bmp*PRICE.moo_piece+bkp*PRICE.kung_piece;
   const revDiff=mRev-expected;
+
+  // อัปเดต _boxRows จาก allS เพื่อให้ showDiffDetail ใช้ได้จาก dashboard
+  _boxRows = allS;
+
   $('price-kpis').innerHTML=`
-    <div class="kpi pu" style="margin:0"><div class="kl">ยอดคาดหวัง</div><div class="kv">${fmt(expected)}</div><div class="ks">จาก ${fmtN(bm+bk+bmp+bkp)} กล่อง</div></div>
-    <div class="kpi bl" style="margin:0"><div class="kl">ยอดจริง</div><div class="kv">${fmt(mRev)}</div></div>
-    <div class="kpi ${revDiff>=0?'gn':'rd'}" style="margin:0"><div class="kl">ส่วนต่าง</div><div class="kv">${revDiff>=0?'+':''}${fmt(revDiff)}</div><div class="ks">${revDiff>=0?'มากกว่าคาด':'น้อยกว่าคาด'}</div></div>`;
+    <div class="kpi pu" style="margin:0;cursor:pointer" onclick="goTab('boxes')" title="ดูรายการขาย">
+      <div class="kl">ยอดคาดหวัง</div><div class="kv">${fmt(expected)}</div>
+      <div class="ks">จาก ${fmtN(bm+bk+bmp+bkp)} กล่อง</div>
+    </div>
+    <div class="kpi bl" style="margin:0;cursor:pointer" onclick="goTab('boxes')" title="ดูรายการขาย">
+      <div class="kl">ยอดจริง</div><div class="kv">${fmt(mRev)}</div>
+    </div>
+    <div class="kpi ${revDiff>=0?'gn':'rd'}" style="margin:0;cursor:pointer" onclick="goDiff()" title="คลิกดูวันที่มีส่วนต่าง">
+      <div class="kl">ส่วนต่าง <i class="fa-solid fa-magnifying-glass" style="font-size:10px;opacity:.7"></i></div>
+      <div class="kv">${revDiff>=0?'+':''}${fmt(revDiff)}</div>
+      <div class="ks" style="display:flex;align-items:center;gap:4px">
+        ${revDiff>=0?'มากกว่าคาด':'น้อยกว่าคาด'}
+        <span style="text-decoration:underline dotted;font-size:10px">คลิกดูรายละเอียด</span>
+      </div>
+    </div>`;
   $('k-bm').textContent=fmtN(bm);$('k-bk').textContent=fmtN(bk);$('k-bmp').textContent=fmtN(bmp);$('k-bkp').textContent=fmtN(bkp);$('k-btot').textContent=fmtN(bm+bk+bmp+bkp);
   $('dash-info').textContent=`${mo==='all'?'ทั้งหมด':ceToThai(mo)} | ${fmt(mRev)} | กำไร ${fmt(mPro)}`;
 
