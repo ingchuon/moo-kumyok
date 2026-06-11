@@ -1188,15 +1188,49 @@ async function loadPay(){
   let grand=0;
   $('pay-tb').innerHTML=rows.length?rows.map(e=>{
     const base=+e.rate* +e.days,ot=+e.ot_hours* +e.ot_rate,net=base+ot- +e.advance;grand+=net;
-    return `<tr><td><strong>${e.name}</strong></td><td><span class="badge bbl">${ceToThai(e.month)||'—'}</span></td><td>${fmt(e.rate)}</td><td>${e.days}</td><td>${fmt(base)}</td><td style="color:var(--or)">${e.ot_hours}ชม. ${fmt(ot)}</td><td style="color:var(--red)">${fmt(e.advance)}</td><td><strong style="color:var(--gn)">${fmt(net)}</strong></td>${eb(`editEmp(${JSON.stringify(e).replace(/\\/g,'\\\\').replace(/"/g,"'")})`,`delRow('employees','${e.id}',loadPay)`)}</tr>`;
+    return `<tr><td><strong>${e.name}</strong></td><td><span class="badge bbl">${ceToThai(e.month)||'—'}</span></td><td>${fmt(e.rate)}</td><td>${e.days}</td><td>${fmt(base)}</td><td style="color:var(--or)">${e.ot_hours}ชม. ${fmt(ot)}</td><td style="color:var(--red)">${fmt(e.advance)}</td><td><strong style="color:var(--gn)">${fmt(net)}</strong></td>${eb(`editEmp(${JSON.stringify(e).replace(/\\/g,'\\\\').replace(/"/g,"'")})`,`delEmpRow('${e.id}','${e.expense_id||''}')`)}</tr>`;
   }).join(''):`<tr><td colspan="9" class="empty">ไม่มีข้อมูล</td></tr>`;
   $('pay-tot').textContent=fmt(grand);$('pay-info').textContent=`${rows.length} รายการ | ${fmt(grand)}`;
 }
 async function saveEmp(){
   const n=$('em-n').value.trim();if(!n)return toast('กรุณาใส่ชื่อ',false);
-  const obj={name:n,month:$('em-mo').value,rate:+$('em-r').value||400,days:+$('em-d').value||0,ot_hours:+$('em-ot').value||0,ot_rate:+$('em-otr').value||50,advance:+$('em-adv').value||0};
-  const id=$('em-id').value;if(id)await db('employees','PATCH',obj,`?id=eq.${id}`);else await db('employees','POST',obj);
-  cancelE('em');loadPay();loadTcSel();toast(id?'แก้ไขแล้ว':'บันทึกแล้ว');
+  const month=$('em-mo').value,rate=+$('em-r').value||400,days=+$('em-d').value||0,ot_hours=+$('em-ot').value||0,ot_rate=+$('em-otr').value||50,advance=+$('em-adv').value||0;
+  const obj={name:n,month,rate,days,ot_hours,ot_rate,advance};
+  const id=$('em-id').value;
+
+  // ยอดสุทธิที่ต้องจ่ายจริง (หักเบิกล่วงหน้าแล้ว) -> บันทึกเป็นรายจ่ายหมวดค่าแรง
+  const net=rate*days+ot_hours*ot_rate-advance;
+  const expDate = month ? `${month}-${String(new Date(month+'-01').getDate()===1?new Date(+month.split('-')[0],+month.split('-')[1],0).getDate():28).padStart(2,'0')}` : todayStr();
+  // ใช้วันสุดท้ายของเดือนนั้นเป็นวันที่รายจ่าย
+  const [y,m]=month.split('-').map(Number);
+  const lastDay=new Date(y,m,0).getDate();
+  const payDate=`${month}-${String(lastDay).padStart(2,'0')}`;
+
+  let existing=null;
+  if(id){
+    const cur=await db('employees','GET',null,`?id=eq.${id}&select=expense_id`);
+    if(cur.length&&cur[0].expense_id) existing=cur[0].expense_id;
+  }
+
+  const expBody={date:payDate,item:`ค่าแรง: ${n} (${ceToThai(month)})`,category:'wage',qty:1,price:Math.max(0,net),created_by:currentUser};
+
+  let expId=existing;
+  if(net>0){
+    if(existing){
+      await db('expenses','PATCH',expBody,`?id=eq.${existing}`);
+    }else{
+      const r=await db('expenses','POST',expBody);
+      expId=r[0]?.id||null;
+    }
+  }else if(existing){
+    // ถ้ายอดสุทธิ <=0 ลบรายจ่ายเดิมทิ้ง
+    await db('expenses','DELETE',null,`?id=eq.${existing}`);
+    expId=null;
+  }
+
+  obj.expense_id=expId;
+  if(id)await db('employees','PATCH',obj,`?id=eq.${id}`);else await db('employees','POST',obj);
+  cancelE('em');loadPay();loadTcSel();loadExpense();loadDash();toast(id?'แก้ไขแล้ว (อัปเดตรายจ่ายค่าแรงแล้ว)':'บันทึกแล้ว (เพิ่มในรายจ่ายแล้ว)');
 }
 function editEmp(e){$('em-id').value=e.id;$('em-n').value=e.name;$('em-mo').value=e.month||thisMonthCE();$('em-r').value=e.rate;$('em-d').value=e.days;$('em-ot').value=e.ot_hours;$('em-otr').value=e.ot_rate;$('em-adv').value=e.advance;setEl('em',`${e.name} ${ceToThai(e.month)}`);$('em-cancel').style.display='';$('em-n').focus();}
 
@@ -1282,6 +1316,12 @@ function renderInvAlert(rows){
 }
 
 // ===== GENERIC DELETE =====
+async function delEmpRow(id,expId){
+  if(!confirm('ลบรายการนี้? (รายจ่ายค่าแรงที่ผูกไว้จะถูกลบด้วย)'))return;
+  await db('employees','DELETE',null,`?id=eq.${id}`);
+  if(expId)await db('expenses','DELETE',null,`?id=eq.${expId}`);
+  loadPay();loadExpense();loadDash();toast('ลบแล้ว');
+}
 async function delRow(tbl,id,...cbs){if(!confirm('ลบรายการนี้?'))return;await db(tbl,'DELETE',null,`?id=eq.${id}`);cbs.forEach(fn=>fn&&fn());toast('ลบแล้ว');}
 
 // ===== DASHBOARD =====
