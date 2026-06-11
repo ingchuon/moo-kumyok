@@ -252,10 +252,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
     <div><div class="ltx">หมูคำหยก</div><span class="lsb">BACKEND</span></div>
     <div class="hdr-r">
       <div class="sb"><div class="sd" id="sd"></div><span id="ss">...</span></div>
-      <div class="sb" style="gap:5px">
+      <div class="sb" style="gap:5px;cursor:pointer" onclick="openPwModal()" title="เปลี่ยนรหัสผ่าน">
         <i class="fa-solid fa-circle-user" style="font-size:13px"></i>
         <span id="user-label" style="font-size:12px">—</span>
         <span id="user-role-badge" style="background:rgba(255,255,255,.25);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600">—</span>
+        <i class="fa-solid fa-key" style="font-size:10px;opacity:.7"></i>
       </div>
       <span class="dbd" id="dbd"></span>
       <button class="logout-btn" onclick="doLogout()"><i class="fa-solid fa-right-from-bracket"></i></button>
@@ -499,7 +500,18 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
             </select>
             <input type="text" id="em-n" placeholder="หรือพิมพ์ชื่อ" style="font-size:12px">
           </div>
-          <div class="fg" style="max-width:140px"><label>เดือน</label><input type="month" id="em-mo"></div>
+          <div class="fg" style="max-width:160px">
+            <label>จ่ายแบบ</label>
+            <select id="em-period" onchange="togglePayPeriod()">
+              <option value="week">รายสัปดาห์</option>
+              <option value="month">รายเดือน</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="em-period-fields">
+          <div class="fg" id="em-week-wrap" style="max-width:160px"><label>สัปดาห์ (วันเริ่ม)</label><input type="date" id="em-week-start" onchange="autoWeekEnd()"></div>
+          <div class="fg" id="em-week-end-wrap" style="max-width:160px"><label>ถึงวันที่</label><input type="date" id="em-week-end" readonly></div>
+          <div class="fg" id="em-mo-wrap" style="max-width:140px;display:none"><label>เดือน</label><input type="month" id="em-mo"></div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <div class="fg"><label>ค่าแรง/วัน</label><input type="number" id="em-r" value="400" min="0" inputmode="numeric"></div>
@@ -836,6 +848,21 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 </div>
 
 <!-- USER MODAL -->
+<!-- เปลี่ยนรหัสผ่านของตัวเอง -->
+<div id="pw-modal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="mbox">
+    <div class="mt"><span>เปลี่ยนรหัสผ่านของฉัน</span><button class="mc" onclick="$('pw-modal').style.display='none'">✕</button></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="fg"><label>Username</label><input type="text" id="pw-username" disabled style="background:var(--gyl)"></div>
+      <div class="fg"><label>รหัสผ่านเดิม</label><input type="password" id="pw-old" placeholder="รหัสผ่านปัจจุบัน"></div>
+      <div class="fg"><label>รหัสผ่านใหม่</label><input type="password" id="pw-new" placeholder="รหัสผ่านใหม่"></div>
+      <div class="fg"><label>ยืนยันรหัสผ่านใหม่</label><input type="password" id="pw-confirm" placeholder="กรอกรหัสผ่านใหม่อีกครั้ง"></div>
+      <div id="pw-err" style="color:var(--red);font-size:12px"></div>
+      <button class="btn bp" style="width:100%" onclick="changeMyPassword()"><i class="fa-solid fa-key"></i> เปลี่ยนรหัสผ่าน</button>
+    </div>
+  </div>
+</div>
+
 <div id="user-modal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="mbox">
     <div class="mt"><span id="user-mt">เพิ่ม User</span><button class="mc" onclick="$('user-modal').style.display='none'">✕</button></div>
@@ -946,7 +973,7 @@ const RM={
   e:()=>{$('e-id').value='';$('e-d').value=todayStr();$('e-i').value='';$('e-q').value='1';$('e-p').value='';$('e-su').value='';$('e-sl').innerHTML='<i class="fa-solid fa-camera"></i> แนบรูป';},
   b:()=>{$('b-id').value='';$('b-d').value=todayStr();['b-m','b-k','b-mp','b-kp'].forEach(i=>$(i).value='');},
   pr:()=>{$('pr-id').value='';$('pr-d').value=todayStr();['pr-moo-box','pr-moo-piece','pr-kung-box','pr-kung-piece','pr-n'].forEach(i=>$(i)&&($(i).value=''));},
-  em:()=>{$('em-id').value='';$('em-n').value='';$('em-mo').value=thisMonthCE();$('em-r').value='400';$('em-d').value='0';$('em-ot').value='0';$('em-otr').value='50';$('em-adv').value='0';},
+  em:()=>{$('em-id').value='';$('em-n').value='';$('em-period').value='week';$('em-mo').value=thisMonthCE();$('em-week-start').value='';$('em-week-end').value='';$('em-r').value='400';$('em-d').value='0';$('em-ot').value='0';$('em-otr').value='50';$('em-adv').value='0';togglePayPeriod();},
   tc:()=>{$('tc-id').value='';$('tc-d').value=todayStr();$('tc-in').value='';$('tc-out').value='';},
   iv:()=>{$('iv-id').value='';['iv-n','iv-q','iv-u','iv-p','iv-m'].forEach(i=>$(i).value='');}
 };
@@ -1174,37 +1201,71 @@ function editProd(id,date,mb,mp,kb,kp,note){
 }
 
 // ===== PAYROLL =====
+function togglePayPeriod(){
+  const isWeek=$('em-period').value==='week';
+  $('em-week-wrap').style.display=isWeek?'':'none';
+  $('em-week-end-wrap').style.display=isWeek?'':'none';
+  $('em-mo-wrap').style.display=isWeek?'none':'';
+}
+function autoWeekEnd(){
+  const start=$('em-week-start').value;
+  if(!start)return;
+  const d=new Date(start);d.setDate(d.getDate()+6);
+  $('em-week-end').value=d.toISOString().split('T')[0];
+}
 async function loadEmpDropdown(){
   const rows=await db('employee_profiles','GET',null,'?order=name.asc&select=name');
   const sel=$('em-n-sel');if(!sel)return;
   const cur=sel.value;
   sel.innerHTML='<option value="">-- เลือกพนักงาน --</option>'+rows.map(r=>`<option value="${r.name}" ${r.name===cur?'selected':''}>${r.name}</option>`).join('');
-  // sync to text input
   if(cur)$('em-n').value=cur;
 }
+function payPeriodLabel(e){
+  if(e.period_type==='week'&&e.week_start&&e.week_end){
+    const f=d=>{const[,m,dd]=d.split('-');return `${dd}/${m}`;};
+    return `สัปดาห์ ${f(e.week_start)}-${f(e.week_end)}`;
+  }
+  return ceToThai(e.month)||'—';
+}
 async function loadPay(){
-  const mo=$('pay-mo').value,f=mo==='all'?'':(`&month=eq.${mo}`);
-  const rows=await db('employees','GET',null,`?order=month.desc,name.asc${f}`);
+  const mo=$('pay-mo').value;
+  const f=mo==='all'?'':`&or=(month.eq.${mo},and(week_start.gte.${mo}-01,week_start.lte.${mo}-31))`;
+  const rows=await db('employees','GET',null,`?order=created_by.asc,name.asc${f}`);
   let grand=0;
   $('pay-tb').innerHTML=rows.length?rows.map(e=>{
     const base=+e.rate* +e.days,ot=+e.ot_hours* +e.ot_rate,net=base+ot- +e.advance;grand+=net;
-    return `<tr><td><strong>${e.name}</strong></td><td><span class="badge bbl">${ceToThai(e.month)||'—'}</span></td><td>${fmt(e.rate)}</td><td>${e.days}</td><td>${fmt(base)}</td><td style="color:var(--or)">${e.ot_hours}ชม. ${fmt(ot)}</td><td style="color:var(--red)">${fmt(e.advance)}</td><td><strong style="color:var(--gn)">${fmt(net)}</strong></td>${eb(`editEmp(${JSON.stringify(e).replace(/\\/g,'\\\\').replace(/"/g,"'")})`,`delEmpRow('${e.id}','${e.expense_id||''}')`)}</tr>`;
+    return `<tr><td><strong>${e.name}</strong></td><td><span class="badge ${e.period_type==='week'?'bor2':'bbl'}">${payPeriodLabel(e)}</span></td><td>${fmt(e.rate)}</td><td>${e.days}</td><td>${fmt(base)}</td><td style="color:var(--or)">${e.ot_hours}ชม. ${fmt(ot)}</td><td style="color:var(--red)">${fmt(e.advance)}</td><td><strong style="color:var(--gn)">${fmt(net)}</strong></td>${eb(`editEmp(${JSON.stringify(e).replace(/\\/g,'\\\\').replace(/"/g,"'")})`,`delEmpRow('${e.id}','${e.expense_id||''}')`)}</tr>`;
   }).join(''):`<tr><td colspan="9" class="empty">ไม่มีข้อมูล</td></tr>`;
   $('pay-tot').textContent=fmt(grand);$('pay-info').textContent=`${rows.length} รายการ | ${fmt(grand)}`;
 }
 async function saveEmp(){
   const n=$('em-n').value.trim();if(!n)return toast('กรุณาใส่ชื่อ',false);
-  const month=$('em-mo').value,rate=+$('em-r').value||400,days=+$('em-d').value||0,ot_hours=+$('em-ot').value||0,ot_rate=+$('em-otr').value||50,advance=+$('em-adv').value||0;
-  const obj={name:n,month,rate,days,ot_hours,ot_rate,advance};
+  const periodType=$('em-period').value;
+  const rate=+$('em-r').value||400,days=+$('em-d').value||0,ot_hours=+$('em-ot').value||0,ot_rate=+$('em-otr').value||50,advance=+$('em-adv').value||0;
   const id=$('em-id').value;
 
-  // ยอดสุทธิที่ต้องจ่ายจริง (หักเบิกล่วงหน้าแล้ว) -> บันทึกเป็นรายจ่ายหมวดค่าแรง
+  let month=null,weekStart=null,weekEnd=null,payDate,periodLabel;
+  if(periodType==='week'){
+    weekStart=$('em-week-start').value;
+    if(!weekStart)return toast('กรุณาเลือกวันเริ่มสัปดาห์',false);
+    weekEnd=$('em-week-end').value||weekStart;
+    payDate=weekEnd; // จ่ายวันสุดท้ายของสัปดาห์
+    const f=d=>{const[,m,dd]=d.split('-');return `${dd}/${m}`;};
+    periodLabel=`สัปดาห์ ${f(weekStart)}-${f(weekEnd)}`;
+    month=weekStart.slice(0,7); // ใช้สำหรับ filter เดือน
+  }else{
+    month=$('em-mo').value;
+    if(!month)return toast('กรุณาเลือกเดือน',false);
+    const [y,m]=month.split('-').map(Number);
+    const lastDay=new Date(y,m,0).getDate();
+    payDate=`${month}-${String(lastDay).padStart(2,'0')}`;
+    periodLabel=ceToThai(month);
+  }
+
+  const obj={name:n,month,rate,days,ot_hours,ot_rate,advance,period_type:periodType,week_start:weekStart,week_end:weekEnd,created_by:currentUser};
+
+  // ยอดสุทธิ -> รายจ่ายหมวดค่าแรง
   const net=rate*days+ot_hours*ot_rate-advance;
-  const expDate = month ? `${month}-${String(new Date(month+'-01').getDate()===1?new Date(+month.split('-')[0],+month.split('-')[1],0).getDate():28).padStart(2,'0')}` : todayStr();
-  // ใช้วันสุดท้ายของเดือนนั้นเป็นวันที่รายจ่าย
-  const [y,m]=month.split('-').map(Number);
-  const lastDay=new Date(y,m,0).getDate();
-  const payDate=`${month}-${String(lastDay).padStart(2,'0')}`;
 
   let existing=null;
   if(id){
@@ -1212,18 +1273,13 @@ async function saveEmp(){
     if(cur.length&&cur[0].expense_id) existing=cur[0].expense_id;
   }
 
-  const expBody={date:payDate,item:`ค่าแรง: ${n} (${ceToThai(month)})`,category:'wage',qty:1,price:Math.max(0,net),created_by:currentUser};
+  const expBody={date:payDate,item:`ค่าแรง: ${n} (${periodLabel})`,category:'wage',qty:1,price:Math.max(0,net),created_by:currentUser};
 
   let expId=existing;
   if(net>0){
-    if(existing){
-      await db('expenses','PATCH',expBody,`?id=eq.${existing}`);
-    }else{
-      const r=await db('expenses','POST',expBody);
-      expId=r[0]?.id||null;
-    }
+    if(existing) await db('expenses','PATCH',expBody,`?id=eq.${existing}`);
+    else { const r=await db('expenses','POST',expBody); expId=r[0]?.id||null; }
   }else if(existing){
-    // ถ้ายอดสุทธิ <=0 ลบรายจ่ายเดิมทิ้ง
     await db('expenses','DELETE',null,`?id=eq.${existing}`);
     expId=null;
   }
@@ -1232,7 +1288,15 @@ async function saveEmp(){
   if(id)await db('employees','PATCH',obj,`?id=eq.${id}`);else await db('employees','POST',obj);
   cancelE('em');loadPay();loadTcSel();loadExpense();loadDash();toast(id?'แก้ไขแล้ว (อัปเดตรายจ่ายค่าแรงแล้ว)':'บันทึกแล้ว (เพิ่มในรายจ่ายแล้ว)');
 }
-function editEmp(e){$('em-id').value=e.id;$('em-n').value=e.name;$('em-mo').value=e.month||thisMonthCE();$('em-r').value=e.rate;$('em-d').value=e.days;$('em-ot').value=e.ot_hours;$('em-otr').value=e.ot_rate;$('em-adv').value=e.advance;setEl('em',`${e.name} ${ceToThai(e.month)}`);$('em-cancel').style.display='';$('em-n').focus();}
+function editEmp(e){
+  $('em-id').value=e.id;$('em-n').value=e.name;
+  $('em-period').value=e.period_type||'month';
+  togglePayPeriod();
+  if(e.period_type==='week'){$('em-week-start').value=e.week_start||'';$('em-week-end').value=e.week_end||'';}
+  else{$('em-mo').value=e.month||thisMonthCE();}
+  $('em-r').value=e.rate;$('em-d').value=e.days;$('em-ot').value=e.ot_hours;$('em-otr').value=e.ot_rate;$('em-adv').value=e.advance;
+  setEl('em',`${e.name} ${payPeriodLabel(e)}`);$('em-cancel').style.display='';$('em-n').focus();
+}
 
 // ===== EMP PROFILES =====
 function openEmpModal(data=null){
@@ -1663,6 +1727,27 @@ async function delUser(id,uname){
   await db('users','DELETE',null,`?id=eq.${id}`);loadUsers();toast('ลบ User แล้ว');
 }
 
+// ===== เปลี่ยนรหัสผ่านของตัวเอง (ทุกคนทำได้เฉพาะของตัวเอง) =====
+function openPwModal(){
+  $('pw-username').value=currentUser;
+  $('pw-old').value='';$('pw-new').value='';$('pw-confirm').value='';$('pw-err').textContent='';
+  $('pw-modal').style.display='flex';
+}
+async function changeMyPassword(){
+  const oldP=$('pw-old').value,newP=$('pw-new').value,confirmP=$('pw-confirm').value;
+  $('pw-err').textContent='';
+  if(!oldP||!newP||!confirmP){$('pw-err').textContent='กรุณากรอกข้อมูลให้ครบ';return;}
+  if(newP!==confirmP){$('pw-err').textContent='รหัสผ่านใหม่ไม่ตรงกัน';return;}
+  if(newP.length<4){$('pw-err').textContent='รหัสผ่านใหม่ต้องมีอย่างน้อย 4 ตัวอักษร';return;}
+  // ตรวจสอบรหัสเดิม — เช็คเฉพาะ user ของตัวเอง (ไม่เห็นของคนอื่น)
+  const rows=await db('users','GET',null,`?username=eq.${encodeURIComponent(currentUser)}&password=eq.${encodeURIComponent(oldP)}`);
+  if(!rows.length){$('pw-err').textContent='รหัสผ่านเดิมไม่ถูกต้อง';return;}
+  await db('users','PATCH',{password:newP},`?id=eq.${rows[0].id}`);
+  $('pw-modal').style.display='none';
+  toast('เปลี่ยนรหัสผ่านสำเร็จ');
+}
+
+
 // ===== DAILY NOTES =====
 async function loadNotes(){
   const rows=await db('daily_notes','GET',null,`?order=date.desc${getF($('notes-mo').value)}`);
@@ -1906,6 +1991,14 @@ function initApp(){
   if($('user-label'))$('user-label').textContent=u;
   ['s-d','e-d','b-d','pr-d','tc-d','ii-d','io-d','ca-d','nt-d'].forEach(id=>{if($(id))$(id).value=todayStr();});
   if($('em-mo'))$('em-mo').value=thisMonthCE();
+  if($('em-period')){$('em-period').value='week';togglePayPeriod();}
+  if($('em-week-start')&&!$('em-week-start').value){
+    // ค่าเริ่มต้น: วันจันทร์ของสัปดาห์นี้
+    const now=new Date();const day=now.getDay();const diff=now.getDate()-day+(day===0?-6:1);
+    const monday=new Date(now.setDate(diff));
+    $('em-week-start').value=monday.toISOString().split('T')[0];
+    autoWeekEnd();
+  }
   ['dash-mo','inc-mo','exp-mo','box-mo','prod-mo','pay-mo','tc-mo','inv-mo','notes-mo','cash-mo'].forEach(id=>buildMonths(id));
   loadPrices();
   if(currentRole==='admin'){loadDash();}else{switchTab('income');}
