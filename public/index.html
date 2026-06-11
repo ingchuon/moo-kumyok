@@ -273,6 +273,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   <button class="tnb" data-tab="tc"><i class="fa-solid fa-clock"></i> เวลา</button>
   <button class="tnb" data-tab="inv"><i class="fa-solid fa-boxes-stacked"></i> วัตถุดิบ</button>
   <button class="tnb" data-tab="prod"><i class="fa-solid fa-industry"></i> การผลิต</button>
+  <button class="tnb" data-tab="notes"><i class="fa-solid fa-note-sticky"></i> โน้ตรายจ่าย</button>
+  <button class="tnb" data-tab="cash"><i class="fa-solid fa-hand-holding-dollar"></i> เบิกเงินสด</button>
+  <button class="tnb admin-only" data-tab="settings"><i class="fa-solid fa-gear"></i> Settings</button>
 </nav>
 
 <div class="wrap">
@@ -701,6 +704,113 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   </div>
 </div>
 
+<!-- NOTES -->
+<div class="tab" id="tab-notes">
+  <div class="mbar">
+    <label><i class="fa-solid fa-calendar-days"></i> เดือน</label>
+    <select id="notes-mo" onchange="loadNotes()"></select>
+    <span class="minfo" id="notes-info"></span>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="btn btn-exp bsm" onclick="exportExcel('notes')"><i class="fa-solid fa-file-excel"></i> Export</button>
+      <button class="btn bgy bsm" onclick="downloadTemplate('notes')"><i class="fa-solid fa-download"></i> Template</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct"><i class="fa-solid fa-note-sticky"></i> โน้ตรายจ่ายรายวัน
+      <span style="margin-left:8px;font-size:11px;background:#FFF3CD;color:#856404;padding:2px 8px;border-radius:10px;font-weight:400">⚠️ ไม่นำไปคำนวณกำไร</span>
+    </div>
+    <div id="nt-el"></div>
+    <div class="fwrap" id="nt-fw">
+      <div class="fg"><label>วันที่</label><input type="date" id="nt-d"></div>
+      <div class="fg" style="min-width:130px"><label>รายการ</label><input type="text" id="nt-i" placeholder="เช่น ค่าน้ำมันรถ"></div>
+      <div class="fg" style="max-width:110px"><label>จำนวนเงิน (฿)</label><input type="number" id="nt-a" placeholder="0" min="0" inputmode="decimal"></div>
+      <div class="fg"><label>โน้ต</label><input type="text" id="nt-n" placeholder="หมายเหตุเพิ่มเติม"></div>
+      <input type="hidden" id="nt-id">
+      <div class="fg" style="flex:0;flex-direction:row;gap:6px;align-items:flex-end">
+        <button class="btn bp" onclick="saveNote()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+        <button class="btn bgy" id="nt-cancel" onclick="cancelE('nt')" style="display:none"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>วันที่</th><th>รายการ</th><th class="tr2">จำนวนเงิน</th><th>โน้ต</th><th>บันทึกโดย</th><th>แก้ไข</th></tr></thead>
+      <tbody id="notes-tb"></tbody>
+    </table></div>
+    <div class="srow"><span>รวม (ไม่คำนวณกำไร)</span><span class="sv" id="notes-tot" style="color:var(--mu)">฿0</span></div>
+  </div>
+</div>
+
+<!-- CASH ADVANCE -->
+<div class="tab" id="tab-cash">
+  <div class="mbar">
+    <label><i class="fa-solid fa-calendar-days"></i> เดือน</label>
+    <select id="cash-mo" onchange="loadCash()"></select>
+    <span class="minfo" id="cash-info"></span>
+  </div>
+  <!-- ขอเบิก -->
+  <div class="card" id="cash-req-card">
+    <div class="ct"><i class="fa-solid fa-paper-plane"></i> ส่งคำขอเบิกเงินสด</div>
+    <div class="fwrap">
+      <div class="fg"><label>วันที่</label><input type="date" id="ca-d"></div>
+      <div class="fg" style="min-width:140px"><label>วัตถุประสงค์</label><input type="text" id="ca-p" placeholder="เช่น ซื้อหมู ผักกาด"></div>
+      <div class="fg" style="max-width:130px"><label>จำนวนเงินที่ขอ (฿)</label><input type="number" id="ca-a" placeholder="0" min="0" inputmode="decimal"></div>
+      <div class="fg" style="flex:0;align-items:flex-end">
+        <button class="btn bp" onclick="requestCash()"><i class="fa-solid fa-paper-plane"></i> ส่งคำขอ</button>
+      </div>
+    </div>
+  </div>
+  <!-- รายการ -->
+  <div class="card">
+    <div class="ct"><i class="fa-solid fa-list"></i> รายการเบิกเงินสด</div>
+    <div id="cash-list"><div class="loading"><div class="spin"></div>กำลังโหลด...</div></div>
+  </div>
+</div>
+
+<!-- SETTINGS (admin only) -->
+<div class="tab" id="tab-settings">
+  <div class="g2">
+    <div class="card">
+      <div class="ct"><i class="fa-solid fa-tags"></i> ตั้งราคาขาย</div>
+      <p style="font-size:12px;color:var(--mu);margin-bottom:12px">ราคาใช้คำนวณยอดคาดหวังทุกแท็บ</p>
+      <div class="fwrap" style="flex-direction:column;gap:10px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="fg"><label>🥩 หมู (กล่อง) ฿/กล่อง</label><input type="number" id="sp-moo" min="0" inputmode="decimal"></div>
+          <div class="fg"><label>🦐 กุ้ง (กล่อง) ฿/กล่อง</label><input type="number" id="sp-kung" min="0" inputmode="decimal"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div class="fg"><label>🥩 หมูชิ้น ฿/ชิ้น</label><input type="number" id="sp-moo-p" min="0" inputmode="decimal"></div>
+          <div class="fg"><label>🦐 กุ้งชิ้น ฿/ชิ้น</label><input type="number" id="sp-kung-p" min="0" inputmode="decimal"></div>
+        </div>
+        <button class="btn bp" onclick="savePrices()"><i class="fa-solid fa-floppy-disk"></i> บันทึกราคา</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct"><i class="fa-solid fa-users-gear"></i> จัดการ Users
+        <button class="btn bgn2 bsm" style="margin-left:auto" onclick="openUserModal()"><i class="fa-solid fa-user-plus"></i> เพิ่ม User</button>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>Username</th><th>Role</th><th>แก้ไข</th></tr></thead>
+        <tbody id="users-tb"></tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct"><i class="fa-solid fa-clock-rotate-left"></i> Audit Log — ใครบันทึกอะไร
+      <select id="audit-tab" onchange="loadAudit()" style="margin-left:auto;font-size:12px;padding:4px 8px;border:1px solid var(--bdr);border-radius:var(--rs);outline:none">
+        <option value="sales">รายรับ</option>
+        <option value="expenses">รายจ่าย</option>
+        <option value="production">การผลิต</option>
+        <option value="time_records">เวลาทำงาน</option>
+        <option value="inventory_log">วัตถุดิบ</option>
+        <option value="daily_notes">โน้ต</option>
+      </select>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>วันที่บันทึก</th><th>ข้อมูล</th><th>บันทึกโดย</th></tr></thead>
+      <tbody id="audit-tb"></tbody>
+    </table></div>
+  </div>
+</div>
+
 </div><!-- /wrap -->
 
 <!-- BOTTOM NAV (mobile) -->
@@ -713,6 +823,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
   <button class="bnb" data-tab="tc"><i class="fa-solid fa-clock"></i><span>เวลา</span></button>
   <button class="bnb" data-tab="inv"><i class="fa-solid fa-boxes-stacked"></i><span>วัตถุดิบ</span></button>
   <button class="bnb" data-tab="prod"><i class="fa-solid fa-industry"></i><span>ผลิต</span></button>
+  <button class="bnb" data-tab="notes"><i class="fa-solid fa-note-sticky"></i><span>โน้ต</span></button>
+  <button class="bnb" data-tab="cash"><i class="fa-solid fa-hand-holding-dollar"></i><span>เบิกเงิน</span></button>
+  <button class="bnb admin-only" data-tab="settings"><i class="fa-solid fa-gear"></i><span>Settings</span></button>
 </nav>
 
 </div><!-- /app -->
@@ -720,6 +833,35 @@ input:focus,select:focus,textarea:focus{border-color:var(--red);box-shadow:0 0 0
 <!-- MODALS -->
 <div id="slip-modal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="mbox"><div class="mt">สลิป<button class="mc" onclick="$('slip-modal').style.display='none'">✕</button></div><img id="slip-img" src="" alt="slip" style="max-width:100%;border-radius:8px"></div>
+</div>
+
+<!-- USER MODAL -->
+<div id="user-modal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="mbox">
+    <div class="mt"><span id="user-mt">เพิ่ม User</span><button class="mc" onclick="$('user-modal').style.display='none'">✕</button></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="g2">
+        <div class="fg"><label>Username</label><input type="text" id="u-name" placeholder="เช่น mky002"></div>
+        <div class="fg"><label>Password</label><input type="text" id="u-pass" placeholder="รหัสผ่าน"></div>
+      </div>
+      <div class="fg"><label>Role</label>
+        <select id="u-role">
+          <option value="admin">Admin (mky) — เข้าได้ทุกแท็บ</option>
+          <option value="staff">Staff — เข้าได้เฉพาะแท็บที่กำหนด</option>
+        </select>
+      </div>
+      <input type="hidden" id="u-id">
+      <button class="btn bp" style="width:100%" onclick="saveUser()"><i class="fa-solid fa-floppy-disk"></i> บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- CASH DETAIL MODAL -->
+<div id="cash-modal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="mbox">
+    <div class="mt"><span id="cash-mt">รายละเอียดการเบิก</span><button class="mc" onclick="$('cash-modal').style.display='none'">✕</button></div>
+    <div id="cash-modal-body" style="display:flex;flex-direction:column;gap:12px"></div>
+  </div>
 </div>
 
 <div id="emp-modal" class="mo" style="display:none" onclick="if(event.target===this)this.style.display='none'">
@@ -819,8 +961,9 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 
 // ===== LOGIN =====
 let currentRole = 'admin';
-const STAFF_TABS = ['income','expense','boxes','tc','inv','prod'];
-const ADMIN_TABS = ['dash','income','expense','boxes','pay','tc','inv','prod'];
+let currentUser = '';
+const STAFF_TABS = ['income','expense','boxes','tc','inv','prod','notes','cash'];
+const ADMIN_TABS = ['dash','income','expense','boxes','pay','tc','inv','prod','notes','cash','settings'];
 
 async function doLogin(){
   const u=$('lg-u').value.trim(),p=$('lg-p').value;
@@ -830,6 +973,7 @@ async function doLogin(){
     const rows=await db('users','GET',null,`?username=eq.${encodeURIComponent(u)}&password=eq.${encodeURIComponent(p)}`);
     if(rows.length){
       currentRole=rows[0].role||'staff';
+      currentUser=u;
       $('login-screen').style.display='none';$('app').style.display='block';
       sessionStorage.setItem('mk_user',u);
       sessionStorage.setItem('mk_role',currentRole);
@@ -840,22 +984,22 @@ async function doLogin(){
 }
 function doLogout(){
   sessionStorage.removeItem('mk_user');sessionStorage.removeItem('mk_role');
-  currentRole='admin';
+  currentRole='admin';currentUser='';
   $('login-screen').style.display='flex';$('app').style.display='none';
 }
 function applyRole(){
   const isAdmin=currentRole==='admin';
   const allowedTabs=isAdmin?ADMIN_TABS:STAFF_TABS;
-  // ซ่อน/แสดง nav buttons
   document.querySelectorAll('.tnb,.bnb').forEach(b=>{
     const show=allowedTabs.includes(b.dataset.tab);
     b.style.display=show?'':'none';
   });
+  // ซ่อน admin-only elements (เช่น settings tab content)
+  document.querySelectorAll('.admin-only').forEach(el=>{el.style.display=isAdmin?'':'none';});
   // badge role
   const badge=$('user-role-badge');
   if(badge){badge.textContent=isAdmin?'เจ้าของ':'พนักงาน';badge.style.background=isAdmin?'rgba(255,255,255,.25)':'rgba(255,200,0,.3)';}
-  // default tab
-  const defaultTab=isAdmin?'dash':'tc';
+  const defaultTab=isAdmin?'dash':'income';
   switchTab(defaultTab);
 }
 $('lg-p').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
@@ -865,7 +1009,7 @@ function switchTab(id){
   document.querySelectorAll('.tnb,.bnb').forEach(b=>{b.classList.toggle('on',b.dataset.tab===id);});
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   $('tab-'+id).classList.add('on');
-  const lo={dash:loadDash,income:loadIncome,expense:loadExpense,boxes:loadBoxes,prod:loadProd,pay:()=>{loadPay();loadEmpList();loadTcSel();loadEmpDropdown();},tc:()=>{loadTimes();loadTcSel();},inv:()=>{loadInv();loadInvLog();}};
+  const lo={dash:loadDash,income:loadIncome,expense:loadExpense,boxes:loadBoxes,prod:loadProd,pay:()=>{loadPay();loadEmpList();loadTcSel();loadEmpDropdown();},tc:()=>{loadTimes();loadTcSel();},inv:()=>{loadInv();loadInvLog();},notes:loadNotes,cash:loadCash,settings:()=>{loadUsers();loadAudit();}};
   if(lo[id])lo[id]();
 }
 function goTab(id){switchTab(id);}
@@ -1423,19 +1567,314 @@ function downloadTemplate(tabId){
   XLSX.writeFile(wb,`Template_${cfg.label}.xlsx`);
   toast(`ดาวน์โหลด Template ${cfg.label} แล้ว`);
 }
+// ===== SETTINGS: PRICES =====
+async function loadPrices(){
+  try{
+    const rows=await db('settings','GET',null,'?key=in.(price_moo,price_kung,price_moo_piece,price_kung_piece)');
+    const map={'price_moo':'sp-moo','price_kung':'sp-kung','price_moo_piece':'sp-moo-p','price_kung_piece':'sp-kung-p'};
+    rows.forEach(r=>{
+      if(r.key==='price_moo')PRICE.moo=+r.value;
+      if(r.key==='price_kung')PRICE.kung=+r.value;
+      if(r.key==='price_moo_piece')PRICE.moo_piece=+r.value;
+      if(r.key==='price_kung_piece')PRICE.kung_piece=+r.value;
+      if(map[r.key]&&$(map[r.key]))$(map[r.key]).value=r.value;
+    });
+  }catch(e){}
+}
+async function savePrices(){
+  const vals=[
+    {key:'price_moo',val:+$('sp-moo').value||70},
+    {key:'price_kung',val:+$('sp-kung').value||109},
+    {key:'price_moo_piece',val:+$('sp-moo-p').value||25},
+    {key:'price_kung_piece',val:+$('sp-kung-p').value||33},
+  ];
+  for(const v of vals) await db('settings','PATCH',{value:String(v.val),updated_by:currentUser},`?key=eq.${v.key}`);
+  PRICE.moo=vals[0].val;PRICE.kung=vals[1].val;PRICE.moo_piece=vals[2].val;PRICE.kung_piece=vals[3].val;
+  toast('บันทึกราคาแล้ว');loadDash();
+}
+
+// ===== USER MANAGEMENT =====
+async function loadUsers(){
+  const rows=await db('users','GET',null,'?order=role.asc,username.asc');
+  $('users-tb').innerHTML=rows.map(u=>`<tr>
+    <td><strong>${u.username}</strong></td>
+    <td><span class="badge ${u.role==='admin'?'bgn':'bbl'}">${u.role==='admin'?'Admin':'Staff'}</span></td>
+    <td style="white-space:nowrap">
+      <button class="btn bic edit bsm" onclick='openUserModal(${JSON.stringify(u)})'><i class="fa-solid fa-pen"></i></button>
+      ${u.username!==currentUser?`<button class="btn bic bsm" style="color:var(--red)" onclick="delUser('${u.id}','${u.username}')"><i class="fa-solid fa-trash-can"></i></button>`:''}
+    </td>
+  </tr>`).join('')||'<tr><td colspan="3" class="empty">ไม่มีข้อมูล</td></tr>';
+}
+function openUserModal(u=null){
+  $('user-mt').textContent=u?'แก้ไข User':'เพิ่ม User';
+  $('u-id').value=u?.id||'';$('u-name').value=u?.username||'';
+  $('u-pass').value=u?.password||'';$('u-role').value=u?.role||'staff';
+  $('user-modal').style.display='flex';
+}
+async function saveUser(){
+  const n=$('u-name').value.trim(),p=$('u-pass').value.trim(),r=$('u-role').value,id=$('u-id').value;
+  if(!n||!p)return toast('กรุณากรอก username และ password',false);
+  if(id)await db('users','PATCH',{username:n,password:p,role:r},`?id=eq.${id}`);
+  else await db('users','POST',{username:n,password:p,role:r});
+  $('user-modal').style.display='none';loadUsers();toast(id?'แก้ไข User แล้ว':'เพิ่ม User แล้ว');
+}
+async function delUser(id,uname){
+  if(!confirm(`ลบ user "${uname}"?`))return;
+  await db('users','DELETE',null,`?id=eq.${id}`);loadUsers();toast('ลบ User แล้ว');
+}
+
+// ===== DAILY NOTES =====
+async function loadNotes(){
+  const rows=await db('daily_notes','GET',null,`?order=date.desc${getF($('notes-mo').value)}`);
+  const tot=rows.reduce((a,r)=>a+ +r.amount,0);
+  $('notes-tb').innerHTML=rows.length?rows.map(r=>`<tr>
+    <td>${r.date}</td><td>${r.item}</td>
+    <td class="tr2"><strong>${fmt(r.amount)}</strong></td>
+    <td>${r.note||'—'}</td>
+    <td><span class="badge bgy2">${r.created_by||'—'}</span></td>
+    ${eb(`editNote('${r.id}','${r.date}','${r.item.replace(/'/g,"\\'")}',${r.amount},'${(r.note||'').replace(/'/g,"\\'")}')`,`delRow('daily_notes','${r.id}',loadNotes)`)}
+  </tr>`).join(''):`<tr><td colspan="6" class="empty">ไม่มีข้อมูล</td></tr>`;
+  $('notes-tot').textContent=fmt(tot);$('notes-info').textContent=`${rows.length} รายการ | ${fmt(tot)}`;
+}
+async function saveNote(){
+  const d=$('nt-d').value,i=$('nt-i').value.trim(),a=+$('nt-a').value||0,n=$('nt-n').value,id=$('nt-id').value;
+  if(!d||!i)return toast('กรุณากรอกวันที่และรายการ',false);
+  const body={date:d,item:i,amount:a,note:n,created_by:currentUser};
+  if(id)await db('daily_notes','PATCH',body,`?id=eq.${id}`);
+  else await db('daily_notes','POST',body);
+  cancelE('nt');loadNotes();toast(id?'แก้ไขแล้ว':'บันทึกแล้ว');
+}
+function editNote(id,date,item,amount,note){
+  $('nt-id').value=id;$('nt-d').value=date;$('nt-i').value=item;$('nt-a').value=amount;$('nt-n').value=note;
+  setEl('nt',`${date} ${item}`);$('nt-cancel').style.display='';$('nt-i').focus();
+}
+
+// ===== CASH ADVANCE =====
+const CASH_STATUS={
+  pending:{label:'รอการอนุมัติ',cls:'bgy2',icon:'fa-clock'},
+  approved:{label:'อนุมัติแล้ว รอซื้อ',cls:'bbl',icon:'fa-check'},
+  purchased:{label:'ซื้อแล้ว รอตรวจ',cls:'bor2',icon:'fa-shopping-cart'},
+  verified:{label:'ปิดรายการแล้ว',cls:'bgn',icon:'fa-check-double'},
+  rejected:{label:'ไม่อนุมัติ',cls:'brd',icon:'fa-xmark'},
+};
+let _purchaseItems=[];
+async function loadCash(){
+  const rows=await db('cash_advances','GET',null,`?order=created_at.desc${getF($('cash-mo').value)}`);
+  const isAdmin=currentRole==='admin';
+  $('cash-info').textContent=`${rows.length} รายการ`;
+  if(!rows.length){$('cash-list').innerHTML='<p style="color:var(--mu);font-size:13px;padding:14px">ยังไม่มีรายการ</p>';return;}
+  $('cash-list').innerHTML=rows.map(r=>{
+    const st=CASH_STATUS[r.status]||CASH_STATUS.pending;
+    const diff=r.actual_spent!=null?+r.amount-+r.actual_spent:null;
+    return `<div class="emp-card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+            <span class="badge ${st.cls}"><i class="fa-solid ${st.icon}"></i> ${st.label}</span>
+            <span style="font-size:11px;color:var(--mu)">${r.date}</span>
+          </div>
+          <div style="font-weight:600;font-size:14px">${r.purpose||'—'}</div>
+          <div style="font-size:12px;color:var(--mu);margin-top:3px">
+            ขอเบิก: <strong>${fmt(r.amount)}</strong>
+            ${r.actual_spent!=null?` | ใช้จริง: <strong>${fmt(r.actual_spent)}</strong>`:''}
+            ${diff!=null?` | คืน: <strong style="color:${diff>=0?'var(--gn)':'var(--red)'}">${fmt(Math.abs(diff))}</strong>`:''}
+          </div>
+          <div style="font-size:11px;color:var(--mu);margin-top:2px">โดย: ${r.requested_by||'—'}${r.approved_by?` | อนุมัติ: ${r.approved_by}`:''}</div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          <button class="btn bgy bsm" onclick="openCashDetail('${r.id}')"><i class="fa-solid fa-eye"></i> รายละเอียด</button>
+          ${isAdmin&&r.status==='pending'?`
+            <button class="btn bp bsm" onclick="approveCash('${r.id}')"><i class="fa-solid fa-check"></i> อนุมัติ</button>
+            <button class="btn bsm" style="background:#E74C3C;color:#fff;border-color:#E74C3C" onclick="rejectCash('${r.id}')"><i class="fa-solid fa-xmark"></i> ปฏิเสธ</button>`:''}
+          ${r.status==='approved'&&(isAdmin||r.requested_by===currentUser)?`<button class="btn bp bsm" onclick="openPurchaseForm('${r.id}',${r.amount})"><i class="fa-solid fa-cart-shopping"></i> กรอกรายการซื้อ</button>`:''}
+          ${isAdmin&&r.status==='purchased'?`<button class="btn bp bsm" onclick="verifyCash('${r.id}')"><i class="fa-solid fa-check-double"></i> ตรวจสอบแล้ว</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function requestCash(){
+  const d=$('ca-d').value,p=$('ca-p').value.trim(),a=+$('ca-a').value||0;
+  if(!d||!p||a<=0)return toast('กรุณากรอกข้อมูลให้ครบ',false);
+  await db('cash_advances','POST',{date:d,requested_by:currentUser,amount:a,purpose:p,status:'pending',created_by:currentUser});
+  $('ca-p').value='';$('ca-a').value='';
+  loadCash();toast('ส่งคำขอเบิกเงินแล้ว — รอ Admin อนุมัติ');
+}
+async function approveCash(id){
+  await db('cash_advances','PATCH',{status:'approved',approved_by:currentUser,approved_at:new Date().toISOString()},`?id=eq.${id}`);
+  loadCash();toast('อนุมัติแล้ว');
+}
+async function rejectCash(id){
+  const note=prompt('เหตุผลที่ไม่อนุมัติ (หรือกด OK เพื่อข้าม):');
+  if(note===null)return;
+  await db('cash_advances','PATCH',{status:'rejected',approved_by:currentUser,admin_note:note||'ไม่อนุมัติ'},`?id=eq.${id}`);
+  loadCash();toast('ปฏิเสธคำขอแล้ว');
+}
+function openPurchaseForm(id,maxAmount){
+  _purchaseItems=[];
+  $('cash-mt').textContent='กรอกรายการซื้อ';
+  $('cash-modal-body').innerHTML=`
+    <p style="font-size:12px;background:var(--gl);color:var(--gn);padding:8px 12px;border-radius:var(--rs)">วงเงินที่ได้รับอนุมัติ: <strong>${fmt(maxAmount)}</strong></p>
+    <div class="fwrap" style="flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="fg"><label>รายการที่ซื้อ</label><input type="text" id="pu-item" placeholder="เช่น หมู"></div>
+        <div class="fg" style="max-width:75px"><label>จำนวน</label><input type="number" id="pu-qty" value="1" min="1" inputmode="numeric"></div>
+        <div class="fg" style="max-width:75px"><label>หน่วย</label><input type="text" id="pu-unit" placeholder="ถุง"></div>
+        <div class="fg" style="max-width:100px"><label>ราคา/หน่วย</label><input type="number" id="pu-price" placeholder="0" inputmode="decimal"></div>
+        <div class="fg" style="flex:0;align-items:flex-end"><button class="btn bgn2 bsm" onclick="addPurchaseItem()"><i class="fa-solid fa-plus"></i> เพิ่ม</button></div>
+      </div>
+      <div id="pu-items-list"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="fg"><label>ยอดใช้จ่ายจริง (฿)</label><input type="number" id="pu-total" placeholder="0" inputmode="decimal"></div>
+        <div class="fg"><label>แนบสลิป/ใบเสร็จ</label>
+          <div class="slip-zone"><input type="file" id="pu-slip" accept="image/*" capture="environment" onchange="prevSlip2()"><span class="szl" id="pu-slip-label"><i class="fa-solid fa-camera"></i> แนบรูป</span></div>
+        </div>
+      </div>
+      <label style="font-size:12px;font-weight:600;color:var(--mu);display:flex;align-items:center;gap:6px;background:var(--gyl);padding:8px 10px;border-radius:var(--rs)">
+        <input type="checkbox" id="pu-upd-stock" checked> อัปเดตสต็อกวัตถุดิบอัตโนมัติ + บันทึกรายจ่าย
+      </label>
+    </div>
+    <input type="hidden" id="pu-slip-url">
+    <button class="btn bp" style="width:100%" onclick="submitPurchase('${id}',${maxAmount})">
+      <i class="fa-solid fa-cloud-upload-alt"></i> ส่งรายการซื้อ — รอ Admin ตรวจสอบ
+    </button>`;
+  $('cash-modal').style.display='flex';
+}
+function addPurchaseItem(){
+  const item=$('pu-item').value.trim(),qty=+$('pu-qty').value||1,unit=$('pu-unit').value||'หน่วย',price=+$('pu-price').value||0;
+  if(!item)return;
+  _purchaseItems.push({item,qty,unit,price});
+  $('pu-items-list').innerHTML='<div style="background:#fff;border-radius:var(--rs);padding:8px 10px;border:1px solid var(--bdr)">'+
+    _purchaseItems.map((p,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--gyl)">
+      <span style="font-size:13px">${p.item} ${p.qty} ${p.unit}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;color:var(--gn);font-weight:600">${fmt(p.qty*p.price)}</span>
+        <button onclick="_purchaseItems.splice(${i},1);addPurchaseItem()" style="background:none;border:none;cursor:pointer;color:var(--red);line-height:1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>`).join('')+
+    `<div style="text-align:right;padding-top:6px;font-weight:600;font-size:14px">รวม: ${fmt(_purchaseItems.reduce((a,p)=>a+p.qty*p.price,0))}</div></div>`;
+  if($('pu-total'))$('pu-total').value=_purchaseItems.reduce((a,p)=>a+p.qty*p.price,0)||'';
+  $('pu-item').value='';$('pu-qty').value='1';$('pu-unit').value='';$('pu-price').value='';$('pu-item').focus();
+}
+function prevSlip2(){
+  const file=$('pu-slip')?.files[0];if(!file)return;
+  const r=new FileReader();r.onload=e=>{if($('pu-slip-url'))$('pu-slip-url').value=e.target.result;if($('pu-slip-label'))$('pu-slip-label').innerHTML=`<img src="${e.target.result}" class="slip-prev">`;};r.readAsDataURL(file);
+}
+async function submitPurchase(advId,maxAmount){
+  const total=+$('pu-total').value||0,slip=$('pu-slip-url')?.value||null,updStock=$('pu-upd-stock')?.checked;
+  if(!total)return toast('กรุณาใส่ยอดใช้จ่ายจริง',false);
+  if(total>maxAmount&&!confirm(`ยอดใช้จ่าย ${fmt(total)} เกินวงเงิน ${fmt(maxAmount)} — ยืนยันหรือไม่?`))return;
+  if(updStock&&_purchaseItems.length){
+    const today=new Date().toISOString().split('T')[0];
+    for(const p of _purchaseItems){
+      try{
+        const ex=await db('inventory','GET',null,`?name=eq.${encodeURIComponent(p.item)}`);
+        if(ex.length)await db('inventory','PATCH',{qty:Math.max(0,+ex[0].qty+p.qty)},`?id=eq.${ex[0].id}`);
+        else await db('inventory','POST',{name:p.item,qty:p.qty,unit:p.unit||'หน่วย',price:p.price,min_qty:5});
+        await db('inventory_log','POST',{item_name:p.item,type:'in',qty:p.qty,date:today,note:`เบิกเงินสด`,created_by:currentUser});
+        await db('expenses','POST',{date:today,item:p.item,category:'raw',qty:p.qty,price:p.price,slip_url:slip,created_by:currentUser});
+      }catch(e){}
+    }
+  }
+  const change=Math.max(0,maxAmount-total);
+  await db('cash_advances','PATCH',{status:'purchased',actual_spent:total,slip_url:slip,items_bought:JSON.stringify(_purchaseItems),change_returned:change},`?id=eq.${advId}`);
+  $('cash-modal').style.display='none';loadCash();toast(`ส่งรายการซื้อแล้ว${change>0?' | คืนเงินทอน '+fmt(change):''}`);
+}
+async function verifyCash(id){
+  await db('cash_advances','PATCH',{status:'verified',approved_by:currentUser},`?id=eq.${id}`);
+  loadCash();toast('ตรวจสอบและปิดรายการแล้ว');
+}
+async function openCashDetail(id){
+  const rows=await db('cash_advances','GET',null,`?id=eq.${id}`);
+  if(!rows.length)return;const r=rows[0];const st=CASH_STATUS[r.status]||CASH_STATUS.pending;
+  const items=r.items_bought?JSON.parse(r.items_bought):[];
+  $('cash-mt').textContent='รายละเอียดการเบิก';
+  $('cash-modal-body').innerHTML=`
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge ${st.cls}"><i class="fa-solid ${st.icon}"></i> ${st.label}</span>
+      <span style="font-size:12px;color:var(--mu)">${r.date}</span>
+    </div>
+    <div><span style="font-size:12px;color:var(--mu)">วัตถุประสงค์:</span><div style="font-weight:600;margin-top:2px">${r.purpose||'—'}</div></div>
+    <div class="g2">
+      <div><span style="font-size:12px;color:var(--mu)">จำนวนเงินที่ขอ</span><div style="font-size:20px;font-weight:600;color:var(--gn)">${fmt(r.amount)}</div></div>
+      ${r.actual_spent!=null?`<div><span style="font-size:12px;color:var(--mu)">ใช้จ่ายจริง</span><div style="font-size:20px;font-weight:600;color:var(--red)">${fmt(r.actual_spent)}</div></div>`:''}
+    </div>
+    ${r.actual_spent!=null?`<div style="background:var(--gl);padding:8px 12px;border-radius:var(--rs)"><span style="font-size:12px;color:var(--mu)">เงินทอน:</span> <strong style="color:var(--gn)">${fmt(Math.max(0,+r.amount-+r.actual_spent))}</strong></div>`:''}
+    ${items.length?`<div><div style="font-size:12px;font-weight:600;color:var(--mu);margin-bottom:6px">รายการที่ซื้อ:</div>${items.map(p=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--gyl);font-size:13px"><span>${p.item} × ${p.qty} ${p.unit}</span><span style="color:var(--gn);font-weight:600">${fmt(p.qty*p.price)}</span></div>`).join('')}</div>`:''}
+    ${r.slip_url?`<div><div style="font-size:12px;color:var(--mu);margin-bottom:6px">สลิป/ใบเสร็จ:</div><img src="${r.slip_url}" style="max-width:100%;border-radius:8px;border:1px solid var(--bdr);cursor:pointer" onclick="viewSlip('${r.slip_url}')"></div>`:''}
+    <div style="font-size:11px;color:var(--mu);padding-top:4px">ขอโดย: ${r.requested_by||'—'} ${r.approved_by?`| อนุมัติโดย: ${r.approved_by}`:''}</div>
+    ${r.admin_note?`<div style="background:var(--rl);padding:8px 12px;border-radius:var(--rs);font-size:12px;color:var(--red)"><i class="fa-solid fa-circle-info"></i> หมายเหตุ: ${r.admin_note}</div>`:''}`;
+  $('cash-modal').style.display='flex';
+}
+
+// ===== AUDIT LOG =====
+async function loadAudit(){
+  const tbl=$('audit-tab')?.value||'sales';
+  const fmap={
+    sales:'date,transfer,cash,note,created_by,created_at',
+    expenses:'date,item,category,qty,price,created_by,created_at',
+    production:'date,moo_box,moo_piece,kung_box,kung_piece,created_by,created_at',
+    time_records:'date,employee_name,status,created_by,created_at',
+    inventory_log:'date,item_name,type,qty,created_by,created_at',
+    daily_notes:'date,item,amount,created_by,created_at',
+  };
+  const rows=await db(tbl,'GET',null,`?order=created_at.desc&limit=60&select=${fmap[tbl]||'created_by,created_at'}`);
+  $('audit-tb').innerHTML=rows.length?rows.map(r=>{
+    const desc=r.item||r.employee_name||r.item_name||(r.transfer!=null?`${fmt(+r.transfer)} / ${fmt(+r.cash)}`:'—');
+    const time=r.created_at?new Date(r.created_at).toLocaleString('th-TH',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+    return `<tr><td style="white-space:nowrap">${time}</td><td style="font-size:12px">${r.date||''} ${desc}</td><td><span class="badge ${r.created_by?'bgn':'bgy2'}">${r.created_by||'ไม่ระบุ'}</span></td></tr>`;
+  }).join(''):`<tr><td colspan="3" class="empty">ไม่มีข้อมูล</td></tr>`;
+}
+
+// ===== OVERRIDE SAVE FUNCTIONS TO INCLUDE created_by =====
+const _origSaveIncome=saveIncome;
+saveIncome=async function(){
+  const d=$('s-d').value,t=+$('s-t').value||0,c=+$('s-c').value||0,n=$('s-n').value,id=$('s-id').value,slip=$('s-su').value||null;
+  if(!d||t+c<=0)return toast('กรุณาใส่วันที่และยอดเงิน',false);
+  if(id)await db('sales','PATCH',{date:d,transfer:t,cash:c,note:n,slip_url:slip},`?id=eq.${id}`);
+  else await db('sales','POST',{date:d,transfer:t,cash:c,note:n,slip_url:slip,boxes_moo:0,boxes_kung:0,boxes_moo_piece:0,boxes_kung_piece:0,created_by:currentUser});
+  cancelE('s');loadIncome();loadDash();toast(id?'แก้ไขแล้ว':'บันทึกแล้ว');
+};
+const _origSaveExp=saveExpense;
+saveExpense=async function(){
+  const d=$('e-d').value,i=$('e-i').value.trim(),cat=$('e-cat').value,q=+$('e-q').value||1,p=+$('e-p').value||0,id=$('e-id').value,slip=$('e-su').value||null;
+  if(!d||!i||p<=0)return toast('กรุณากรอกข้อมูลให้ครบ',false);
+  if(id)await db('expenses','PATCH',{date:d,item:i,category:cat,qty:q,price:p,slip_url:slip},`?id=eq.${id}`);
+  else await db('expenses','POST',{date:d,item:i,category:cat,qty:q,price:p,slip_url:slip,created_by:currentUser});
+  cancelE('e');loadExpense();loadDash();toast(id?'แก้ไขแล้ว':'บันทึกแล้ว');
+};
+
+// ===== XL_CFG เพิ่ม notes =====
+XL_CFG.notes={
+  label:'โน้ตรายจ่าย',
+  headers:['วันที่','รายการ','จำนวนเงิน','โน้ต'],
+  keys:['date','item','amount','note'],
+  load:()=>db('daily_notes','GET',null,'?order=date.asc'),
+  rowMap:r=>({วันที่:r.date,รายการ:r.item,จำนวนเงิน:+r.amount,โน้ต:r.note||''}),
+  importRow:r=>r.วันที่?{date:String(r.วันที่),item:String(r.รายการ||''),amount:+r.จำนวนเงิน||0,note:r.โน้ต||'',created_by:currentUser}:null,
+  table:'daily_notes',reload:loadNotes
+};
+
+// reset map เพิ่ม nt
+const _origRM={...RM};
+RM.nt=()=>{$('nt-id').value='';$('nt-d').value=todayStr();['nt-i','nt-a','nt-n'].forEach(i=>$(i)&&($(i).value=''));};
+
 function initApp(){
   const n=new Date();$('dbd').textContent=`${n.toLocaleDateString('th-TH',{day:'numeric',month:'short'})} ${n.getFullYear()+543}`;
   const u=sessionStorage.getItem('mk_user')||'';
+  currentUser=u;
   if($('user-label'))$('user-label').textContent=u;
-  ['s-d','e-d','b-d','pr-d','tc-d','ii-d','io-d'].forEach(id=>{if($(id))$(id).value=todayStr();});
-  $('em-mo').value=thisMonthCE();
-  ['dash-mo','inc-mo','exp-mo','box-mo','prod-mo','pay-mo','tc-mo','inv-mo'].forEach(id=>buildMonths(id));
-  if(currentRole==='admin'){loadDash();}
+  ['s-d','e-d','b-d','pr-d','tc-d','ii-d','io-d','ca-d','nt-d'].forEach(id=>{if($(id))$(id).value=todayStr();});
+  if($('em-mo'))$('em-mo').value=thisMonthCE();
+  ['dash-mo','inc-mo','exp-mo','box-mo','prod-mo','pay-mo','tc-mo','inv-mo','notes-mo','cash-mo'].forEach(id=>buildMonths(id));
+  loadPrices();
+  if(currentRole==='admin'){loadDash();}else{switchTab('income');}
   loadIncome();loadExpense();
 }
 // auto session
 if(sessionStorage.getItem('mk_user')){
   currentRole=sessionStorage.getItem('mk_role')||'staff';
+  currentUser=sessionStorage.getItem('mk_user');
   $('login-screen').style.display='none';$('app').style.display='block';
   applyRole();initApp();
 }
